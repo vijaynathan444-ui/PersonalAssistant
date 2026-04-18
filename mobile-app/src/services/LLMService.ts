@@ -1,4 +1,5 @@
-import {NativeModules} from 'react-native';
+import {NativeModules, Platform} from 'react-native';
+import RNFS from 'react-native-fs';
 import type {ModelInfo} from '../types';
 
 const {LLMModule} = NativeModules;
@@ -8,12 +9,14 @@ export interface LLMServiceInterface {
   runInference(prompt: string, maxTokens: number): Promise<string>;
   unloadModel(): Promise<boolean>;
   getModelInfo(): Promise<ModelInfo>;
+  getAppModelDir(): Promise<string>;
+  copyModelToAppDir(sourceUri: string, fileName: string): Promise<string>;
 }
 
 class LLMService implements LLMServiceInterface {
   async loadModel(
     modelPath: string,
-    contextSize: number = 2048,
+    contextSize: number = 4096,
     threads: number = 4,
   ): Promise<ModelInfo> {
     if (!modelPath || modelPath.trim().length === 0) {
@@ -22,7 +25,7 @@ class LLMService implements LLMServiceInterface {
     return await LLMModule.loadModel(modelPath, contextSize, threads);
   }
 
-  async runInference(prompt: string, maxTokens: number = 512): Promise<string> {
+  async runInference(prompt: string, maxTokens: number = 1024): Promise<string> {
     if (!prompt || prompt.trim().length === 0) {
       throw new Error('Prompt is required');
     }
@@ -35,6 +38,36 @@ class LLMService implements LLMServiceInterface {
 
   async getModelInfo(): Promise<ModelInfo> {
     return await LLMModule.getModelInfo();
+  }
+
+  async getAppModelDir(): Promise<string> {
+    if (Platform.OS === 'android') {
+      return await LLMModule.getAppModelDir();
+    }
+    return `${RNFS.DocumentDirectoryPath}/models`;
+  }
+
+  async copyModelToAppDir(sourceUri: string, fileName: string): Promise<string> {
+    const modelDir = await this.getAppModelDir();
+    const destPath = `${modelDir}/${fileName}`;
+
+    // Ensure directory exists
+    const dirExists = await RNFS.exists(modelDir);
+    if (!dirExists) {
+      await RNFS.mkdir(modelDir);
+    }
+
+    // If source is a content:// URI, copy it
+    if (sourceUri.startsWith('content://')) {
+      await RNFS.copyFile(sourceUri, destPath);
+    } else {
+      // Regular file path
+      if (sourceUri !== destPath) {
+        await RNFS.copyFile(sourceUri, destPath);
+      }
+    }
+
+    return destPath;
   }
 }
 

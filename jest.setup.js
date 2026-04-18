@@ -20,6 +20,10 @@ jest.mock('react-native-document-picker', () => ({
       allFiles: '*/*',
     },
   },
+  pick: jest.fn(() => Promise.resolve([{uri: 'content://test/model.gguf', name: 'model.gguf'}])),
+  types: {
+    allFiles: '*/*',
+  },
 }));
 
 jest.mock('react-native-image-picker', () => ({
@@ -27,7 +31,19 @@ jest.mock('react-native-image-picker', () => ({
 }));
 
 jest.mock('react-native-fs', () => ({
+  __esModule: true,
+  default: {
+    readFile: jest.fn(),
+    copyFile: jest.fn(() => Promise.resolve()),
+    exists: jest.fn(() => Promise.resolve(false)),
+    mkdir: jest.fn(() => Promise.resolve()),
+    DocumentDirectoryPath: '/data/data/com.localaiassistant/files',
+  },
   readFile: jest.fn(),
+  copyFile: jest.fn(() => Promise.resolve()),
+  exists: jest.fn(() => Promise.resolve(false)),
+  mkdir: jest.fn(() => Promise.resolve()),
+  DocumentDirectoryPath: '/data/data/com.localaiassistant/files',
 }));
 
 const ReactNative = require('react-native');
@@ -36,7 +52,8 @@ ReactNative.NativeModules.LLMModule = {
   loadModel: jest.fn(() => Promise.resolve(true)),
   runInference: jest.fn(() => Promise.resolve('Test response')),
   unloadModel: jest.fn(() => Promise.resolve()),
-  getModelInfo: jest.fn(() => Promise.resolve({loaded: true, contextSize: 2048})),
+  getModelInfo: jest.fn(() => Promise.resolve({loaded: true, contextSize: 4096})),
+  getAppModelDir: jest.fn(() => Promise.resolve('/data/data/com.localaiassistant/files/models')),
 };
 
 ReactNative.NativeModules.VoskModule = {

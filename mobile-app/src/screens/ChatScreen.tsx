@@ -203,10 +203,24 @@ const ChatScreen: React.FC = () => {
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🤖</Text>
             <Text style={styles.emptyTitle}>LocalAI Assistant</Text>
-            <Text style={styles.emptySubtitle}>
-              Fully offline AI running on your device.{'\n'}
-              Type a message or use voice input.
-            </Text>
+            {!modelInfo?.loaded && !isModelLoading ? (
+              <View>
+                <Text style={styles.emptySubtitle}>
+                  No model loaded yet.{'\n'}
+                  Go to Settings → Pick a .gguf model file to get started.
+                </Text>
+                <TouchableOpacity
+                  style={styles.setupButton}
+                  onPress={() => navigation.navigate('Settings')}>
+                  <Text style={styles.setupButtonText}>Open Settings</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <Text style={styles.emptySubtitle}>
+                Fully offline AI running on your device.{'\n'}
+                Type a message or use voice input.
+              </Text>
+            )}
           </View>
         }
         ListFooterComponent={isGenerating ? <TypingIndicator /> : null}
@@ -307,6 +321,19 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     lineHeight: 20,
+  },
+  setupButton: {
+    marginTop: 16,
+    backgroundColor: '#0a84ff',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignSelf: 'center',
+  },
+  setupButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 15,
   },
 });
 

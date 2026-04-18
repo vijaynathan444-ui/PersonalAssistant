@@ -8,10 +8,13 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {pick, types} from 'react-native-document-picker';
 import {useAppStore} from '../store/useAppStore';
 import {useLLM} from '../hooks/useLLM';
+import llmService from '../services/LLMService';
 import securityService from '../services/SecurityService';
 
 const SettingsScreen: React.FC = () => {
@@ -24,6 +27,46 @@ const SettingsScreen: React.FC = () => {
   const [maxTokens, setMaxTokens] = useState(String(settings.modelConfig.maxTokens));
   const [retrievalTopK, setRetrievalTopK] = useState(String(settings.retrievalTopK));
   const [systemPrompt, setSystemPrompt] = useState(settings.systemPrompt);
+  const [isCopying, setIsCopying] = useState(false);
+
+  const handlePickModel = async () => {
+    try {
+      const [result] = await pick({
+        type: [types.allFiles],
+      });
+
+      if (!result || !result.uri) return;
+
+      const fileName = result.name || 'model.gguf';
+      if (!fileName.endsWith('.gguf')) {
+        Alert.alert('Invalid File', 'Please select a .gguf model file.');
+        return;
+      }
+
+      setIsCopying(true);
+      try {
+        const destPath = await llmService.copyModelToAppDir(result.uri, fileName);
+        setModelPath(destPath);
+        updateSettings({
+          modelConfig: {
+            ...settings.modelConfig,
+            modelPath: destPath,
+          },
+        });
+        Alert.alert(
+          'Model Imported',
+          `Model copied to app storage.\nPath: ${destPath}\n\nTap "Reload Model" to load it.`,
+        );
+      } finally {
+        setIsCopying(false);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (!message.includes('cancel')) {
+        Alert.alert('Error', `Failed to import model: ${message}`);
+      }
+    }
+  };
 
   const handleSaveModelConfig = () => {
     const ctx = parseInt(contextSize, 10);
@@ -98,6 +141,23 @@ const SettingsScreen: React.FC = () => {
             placeholderTextColor="#555"
             autoCapitalize="none"
           />
+
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton, {marginTop: 8}]}
+            onPress={handlePickModel}
+            disabled={isCopying}>
+            {isCopying ? (
+              <View style={styles.loadingRow}>
+                <ActivityIndicator size="small" color="#fff" />
+                <Text style={[styles.buttonText, {marginLeft: 8}]}>Copying model...</Text>
+              </View>
+            ) : (
+              <Text style={styles.buttonText}>📂 Pick Model File (.gguf)</Text>
+            )}
+          </TouchableOpacity>
+          <Text style={styles.hintText}>
+            Download a GGUF model and place it anywhere on your device, then use the button above to import it.
+          </Text>
 
           <View style={styles.row}>
             <View style={styles.halfInput}>
@@ -327,6 +387,17 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 13,
     marginBottom: 2,
+  },
+  hintText: {
+    color: '#666',
+    fontSize: 11,
+    marginTop: 6,
+    lineHeight: 16,
+  },
+  loadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
 

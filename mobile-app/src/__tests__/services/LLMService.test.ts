@@ -33,7 +33,7 @@ describe('LLMService', () => {
       await llmService.loadModel('/model.gguf');
       expect(NativeModules.LLMModule.loadModel).toHaveBeenCalledWith(
         '/model.gguf',
-        2048,
+        4096,
         4,
       );
     });
@@ -54,7 +54,7 @@ describe('LLMService', () => {
 
     it('should use default maxTokens', async () => {
       await llmService.runInference('Hello');
-      expect(NativeModules.LLMModule.runInference).toHaveBeenCalledWith('Hello', 512);
+      expect(NativeModules.LLMModule.runInference).toHaveBeenCalledWith('Hello', 1024);
     });
   });
 
@@ -68,7 +68,7 @@ describe('LLMService', () => {
   describe('getModelInfo', () => {
     it('should return model info', async () => {
       const info = await llmService.getModelInfo();
-      expect(info).toEqual({loaded: true, contextSize: 2048});
+      expect(info).toEqual({loaded: true, contextSize: 4096});
     });
   });
 });

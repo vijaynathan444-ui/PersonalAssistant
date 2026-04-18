@@ -2,6 +2,11 @@ import React from 'react';
 import {render} from '@testing-library/react-native';
 import ModelStatusBar from '../../components/ModelStatusBar';
 
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({navigate: mockNavigate}),
+}));
+
 describe('ModelStatusBar', () => {
   it('should show loaded state', () => {
     const {getByText} = render(
@@ -14,7 +19,7 @@ describe('ModelStatusBar', () => {
     const {getByText} = render(
       <ModelStatusBar isLoaded={false} isLoading={false} contextSize={0} />,
     );
-    expect(getByText('Model not loaded')).toBeTruthy();
+    expect(getByText(/Model not loaded/)).toBeTruthy();
   });
 
   it('should show loading state', () => {

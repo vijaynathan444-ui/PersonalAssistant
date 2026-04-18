@@ -18,6 +18,20 @@ class LLMModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaMod
     override fun getName(): String = NAME
 
     @ReactMethod
+    fun getAppModelDir(promise: Promise) {
+        try {
+            val dir = reactApplicationContext.getExternalFilesDir(null)
+            val modelDir = File(dir, "models")
+            if (!modelDir.exists()) {
+                modelDir.mkdirs()
+            }
+            promise.resolve(modelDir.absolutePath)
+        } catch (e: Exception) {
+            promise.reject("DIR_ERROR", "Failed to get model directory: ${e.message}", e)
+        }
+    }
+
+    @ReactMethod
     fun loadModel(modelPath: String, contextSize: Int, threads: Int, promise: Promise) {
         scope.launch {
             try {

@@ -1,5 +1,6 @@
 import React from 'react';
-import {View, Text, StyleSheet, ActivityIndicator} from 'react-native';
+import {View, Text, StyleSheet, ActivityIndicator, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
 interface ModelStatusBarProps {
   isLoaded: boolean;
@@ -8,6 +9,23 @@ interface ModelStatusBarProps {
 }
 
 const ModelStatusBar: React.FC<ModelStatusBarProps> = ({isLoaded, isLoading, contextSize}) => {
+  const navigation = useNavigation<any>();
+
+  if (!isLoaded && !isLoading) {
+    return (
+      <TouchableOpacity
+        style={styles.container}
+        onPress={() => navigation.navigate('Settings')}
+        activeOpacity={0.7}>
+        <View style={[styles.indicator, styles.indicatorRed]} />
+        <Text style={styles.statusText}>
+          Model not loaded — tap to set up
+        </Text>
+        <Text style={styles.arrow}>›</Text>
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={[styles.indicator, isLoaded ? styles.indicatorGreen : styles.indicatorRed]} />
@@ -18,7 +36,7 @@ const ModelStatusBar: React.FC<ModelStatusBarProps> = ({isLoaded, isLoading, con
         </View>
       ) : (
         <Text style={styles.statusText}>
-          {isLoaded ? `Model ready • ${contextSize} ctx` : 'Model not loaded'}
+          Model ready • {contextSize} ctx
         </Text>
       )}
     </View>
@@ -53,6 +71,12 @@ const styles = StyleSheet.create({
   statusText: {
     color: '#999',
     fontSize: 12,
+    flex: 1,
+  },
+  arrow: {
+    color: '#666',
+    fontSize: 18,
+    marginLeft: 8,
   },
 });
 

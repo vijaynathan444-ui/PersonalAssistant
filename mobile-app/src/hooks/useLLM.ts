@@ -1,4 +1,5 @@
 import {useCallback} from 'react';
+import {Alert} from 'react-native';
 import {useAppStore} from '../store/useAppStore';
 import llmService from '../services/LLMService';
 import promptService from '../services/PromptService';
@@ -22,21 +23,49 @@ export function useLLM() {
     setIsModelLoading,
   } = useAppStore();
 
-  const loadModel = useCallback(async () => {
+  const loadModel = useCallback(async (): Promise<boolean> => {
     setIsModelLoading(true);
     try {
       const {modelConfig} = settings;
+      let modelPath = modelConfig.modelPath;
+
+      // If no custom path set, try the app-scoped model directory
+      if (!modelPath || modelPath === '/data/local/tmp/models/model.gguf') {
+        try {
+          const appModelDir = await llmService.getAppModelDir();
+          const appModelPath = `${appModelDir}/model.gguf`;
+          // Check if a model exists in app storage first
+          const RNFS = require('react-native-fs').default;
+          const exists = await RNFS.exists(appModelPath);
+          if (exists) {
+            modelPath = appModelPath;
+          }
+        } catch {
+          // Fall through to try the original path
+        }
+      }
+
       const info = await llmService.loadModel(
-        modelConfig.modelPath,
+        modelPath,
         modelConfig.contextSize,
         modelConfig.threads,
       );
       setModelInfo(info);
       promptService.setSystemPrompt(settings.systemPrompt);
       return true;
-    } catch (error) {
-      console.error('Failed to load model:', error);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error('Failed to load model:', message);
       setModelInfo(null);
+
+      if (message.includes('MODEL_NOT_FOUND') || message.includes('not found')) {
+        Alert.alert(
+          'Model Not Found',
+          'No model file found. Go to Settings and use "Pick Model File" to select a .gguf model from your device.\n\nRecommended: Phi-3.1-mini-4k-instruct Q4_K_M',
+        );
+      } else {
+        Alert.alert('Model Load Failed', message);
+      }
       return false;
     } finally {
       setIsModelLoading(false);

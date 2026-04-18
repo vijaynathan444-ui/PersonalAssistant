@@ -8,8 +8,8 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "lint": "eslint . --ext .ts,.tsx",
-    "build:release": "cd android && gradlew assembleRelease",
-    "clean": "cd android && gradlew clean"
+    "build:release": "cd android && .\\gradlew.bat assembleRelease",
+    "clean": "cd android && .\\gradlew.bat clean"
   },
   "dependencies": {
     "@react-navigation/native": "^7.0.0",

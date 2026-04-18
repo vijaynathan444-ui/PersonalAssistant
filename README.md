@@ -11,18 +11,26 @@
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screenshots/chat-home.png" width="250" alt="Chat Home Screen" />
-  &nbsp;&nbsp;
-  <img src="docs/screenshots/chat-response.png" width="250" alt="Chat Response" />
-  &nbsp;&nbsp;
-  <img src="docs/screenshots/release-build.png" width="250" alt="Release Build" />
+  <img src="docs/screenshots/01-chat-home.png" width="220" alt="Chat Home Screen" />
+  &nbsp;
+  <img src="docs/screenshots/02-settings.png" width="220" alt="Settings - Model Config" />
+  &nbsp;
+  <img src="docs/screenshots/04-knowledge.png" width="220" alt="Project Memory" />
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/03-settings-bottom.png" width="220" alt="Settings - Model Status" />
+  &nbsp;
+  <img src="docs/screenshots/05-knowledge-import.png" width="220" alt="Import Sources" />
 </p>
 
 | Screen | Description |
 |---|---|
-| **Chat Home** | Main chat interface with voice input, model status bar showing context size |
-| **Chat Response** | AI responding to user message — fully offline, on-device inference |
-| **Release Build** | Production APK running on device/emulator |
+| **Chat Home** | Main chat interface with model status bar (green = loaded, 4096 ctx), project memory banner, voice input |
+| **Settings (Top)** | Model path, Pick Model File button, context size, threads, max tokens, system prompt |
+| **Settings (Bottom)** | Model status (loaded/unloaded), Reload/Unload, Save Settings, Security Check, About |
+| **Project Memory** | Create projects, manage knowledge base for RAG-powered chat |
+| **Import Sources** | Add files (MD, DOCX, XLSX, CSV, JSON), images, web pages, run web research |
 
 ## Architecture
 
@@ -74,11 +82,10 @@ Or choose based on your device RAM:
 | 6GB | **Phi-3.1-mini-4k Q4_K_M** (recommended) | ~2.3GB | [HuggingFace](https://huggingface.co/bartowski/Phi-3.1-mini-4k-instruct-GGUF) |
 | 8GB+ | Mistral 7B Q4_K_M | ~4.1GB | [HuggingFace](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) |
 
-Place the `.gguf` file in `models/` and push to device:
+Place the `.gguf` file anywhere on your device (e.g. Downloads), then:
 
-```bash
-adb push models/your-model.gguf /data/local/tmp/models/model.gguf
-```
+- **In-app:** Open Settings → tap **"Pick Model File (.gguf)"** → select the file → tap **"Reload Model"**
+- **Via ADB (dev):** `adb push models/your-model.gguf /data/local/tmp/models/model.gguf`
 
 ### 3. Run Development Build
 
