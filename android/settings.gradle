@@ -1,0 +1,11 @@
+pluginManagement {
+    includeBuild("../node_modules/@react-native/gradle-plugin")
+}
+plugins {
+    id("com.facebook.react.settings")
+}
+extensions.configure(com.facebook.react.ReactSettingsExtension.class) { ext ->
+    ext.autolinkLibrariesFromCommand()
+}
+rootProject.name = 'LocalAIAssistant'
+include ':app'

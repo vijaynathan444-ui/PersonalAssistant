@@ -1,0 +1,307 @@
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  Switch,
+  Alert,
+} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useAppStore} from '../store/useAppStore';
+import {useLLM} from '../hooks/useLLM';
+import securityService from '../services/SecurityService';
+
+const SettingsScreen: React.FC = () => {
+  const {settings, updateSettings} = useAppStore();
+  const {modelInfo, loadModel, unloadModel, isModelLoading} = useLLM();
+
+  const [modelPath, setModelPath] = useState(settings.modelConfig.modelPath);
+  const [contextSize, setContextSize] = useState(String(settings.modelConfig.contextSize));
+  const [threads, setThreads] = useState(String(settings.modelConfig.threads));
+  const [maxTokens, setMaxTokens] = useState(String(settings.modelConfig.maxTokens));
+  const [systemPrompt, setSystemPrompt] = useState(settings.systemPrompt);
+
+  const handleSaveModelConfig = () => {
+    const ctx = parseInt(contextSize, 10);
+    const thr = parseInt(threads, 10);
+    const max = parseInt(maxTokens, 10);
+
+    if (isNaN(ctx) || ctx < 128 || ctx > 8192) {
+      Alert.alert('Invalid', 'Context size must be between 128 and 8192');
+      return;
+    }
+    if (isNaN(thr) || thr < 1 || thr > 16) {
+      Alert.alert('Invalid', 'Threads must be between 1 and 16');
+      return;
+    }
+    if (isNaN(max) || max < 32 || max > 4096) {
+      Alert.alert('Invalid', 'Max tokens must be between 32 and 4096');
+      return;
+    }
+
+    updateSettings({
+      modelConfig: {
+        modelPath,
+        contextSize: ctx,
+        threads: thr,
+        maxTokens: max,
+      },
+      systemPrompt,
+    });
+
+    Alert.alert('Saved', 'Settings have been saved. Reload model to apply changes.');
+  };
+
+  const handleSecurityCheck = async () => {
+    try {
+      const result = await securityService.checkDeviceSecurity();
+      Alert.alert(
+        'Security Check',
+        `Rooted: ${result.isRooted ? 'YES ⚠️' : 'No ✅'}\n` +
+          `Emulator: ${result.isEmulator ? 'YES ⚠️' : 'No ✅'}\n` +
+          `Debugger: ${result.isDebuggerAttached ? 'YES ⚠️' : 'No ✅'}\n` +
+          `\nOverall: ${result.secure ? 'SECURE ✅' : 'WARNINGS DETECTED ⚠️'}`,
+      );
+    } catch (error) {
+      Alert.alert('Error', 'Failed to run security check');
+    }
+  };
+
+  const handleReloadModel = async () => {
+    handleSaveModelConfig();
+    await unloadModel();
+    await loadModel();
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        {/* Model Configuration */}
+        <Text style={styles.sectionTitle}>Model Configuration</Text>
+        <View style={styles.card}>
+          <Text style={styles.label}>Model Path</Text>
+          <TextInput
+            style={styles.input}
+            value={modelPath}
+            onChangeText={setModelPath}
+            placeholder="/data/local/tmp/models/model.gguf"
+            placeholderTextColor="#555"
+            autoCapitalize="none"
+          />
+
+          <View style={styles.row}>
+            <View style={styles.halfInput}>
+              <Text style={styles.label}>Context Size</Text>
+              <TextInput
+                style={styles.input}
+                value={contextSize}
+                onChangeText={setContextSize}
+                keyboardType="numeric"
+                placeholderTextColor="#555"
+              />
+            </View>
+            <View style={styles.halfInput}>
+              <Text style={styles.label}>Threads</Text>
+              <TextInput
+                style={styles.input}
+                value={threads}
+                onChangeText={setThreads}
+                keyboardType="numeric"
+                placeholderTextColor="#555"
+              />
+            </View>
+          </View>
+
+          <Text style={styles.label}>Max Tokens</Text>
+          <TextInput
+            style={styles.input}
+            value={maxTokens}
+            onChangeText={setMaxTokens}
+            keyboardType="numeric"
+            placeholderTextColor="#555"
+          />
+        </View>
+
+        {/* System Prompt */}
+        <Text style={styles.sectionTitle}>System Prompt</Text>
+        <View style={styles.card}>
+          <TextInput
+            style={[styles.input, styles.multilineInput]}
+            value={systemPrompt}
+            onChangeText={setSystemPrompt}
+            multiline
+            numberOfLines={4}
+            placeholderTextColor="#555"
+          />
+        </View>
+
+        {/* Voice Settings */}
+        <Text style={styles.sectionTitle}>Voice</Text>
+        <View style={styles.card}>
+          <View style={styles.switchRow}>
+            <Text style={styles.label}>Voice Enabled</Text>
+            <Switch
+              value={settings.voiceEnabled}
+              onValueChange={(val) => updateSettings({voiceEnabled: val})}
+              trackColor={{false: '#333', true: '#0a84ff'}}
+              thumbColor="#fff"
+            />
+          </View>
+        </View>
+
+        {/* Model Status */}
+        <Text style={styles.sectionTitle}>Model Status</Text>
+        <View style={styles.card}>
+          <Text style={styles.statusText}>
+            Status: {modelInfo?.loaded ? '🟢 Loaded' : '🔴 Not Loaded'}
+          </Text>
+          {modelInfo?.loaded && (
+            <Text style={styles.statusText}>
+              Context: {modelInfo.contextSize} tokens
+            </Text>
+          )}
+
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={[styles.button, styles.primaryButton]}
+              onPress={handleReloadModel}
+              disabled={isModelLoading}>
+              <Text style={styles.buttonText}>
+                {isModelLoading ? 'Loading...' : 'Reload Model'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, styles.dangerButton]}
+              onPress={unloadModel}
+              disabled={!modelInfo?.loaded}>
+              <Text style={styles.buttonText}>Unload</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Actions */}
+        <Text style={styles.sectionTitle}>Actions</Text>
+        <View style={styles.card}>
+          <TouchableOpacity style={[styles.button, styles.primaryButton]} onPress={handleSaveModelConfig}>
+            <Text style={styles.buttonText}>Save Settings</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton, {marginTop: 10}]}
+            onPress={handleSecurityCheck}>
+            <Text style={styles.buttonText}>Run Security Check</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* App Info */}
+        <Text style={styles.sectionTitle}>About</Text>
+        <View style={styles.card}>
+          <Text style={styles.infoText}>LocalAI Assistant v1.0.0</Text>
+          <Text style={styles.infoText}>Fully offline AI personal assistant</Text>
+          <Text style={styles.infoText}>Powered by llama.cpp</Text>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#16213e',
+  },
+  scroll: {
+    flex: 1,
+  },
+  content: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#82aaff',
+    marginTop: 20,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  card: {
+    backgroundColor: '#1a1a2e',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#2a2a4a',
+  },
+  label: {
+    fontSize: 13,
+    color: '#aaa',
+    marginBottom: 4,
+    marginTop: 8,
+  },
+  input: {
+    backgroundColor: '#2a2a4a',
+    borderRadius: 8,
+    padding: 12,
+    color: '#fff',
+    fontSize: 14,
+  },
+  multilineInput: {
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  row: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  halfInput: {
+    flex: 1,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  statusText: {
+    color: '#ccc',
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  primaryButton: {
+    backgroundColor: '#0a84ff',
+  },
+  secondaryButton: {
+    backgroundColor: '#2a2a4a',
+    borderWidth: 1,
+    borderColor: '#444',
+  },
+  dangerButton: {
+    backgroundColor: '#d32f2f',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  infoText: {
+    color: '#888',
+    fontSize: 13,
+    marginBottom: 2,
+  },
+});
+
+export default SettingsScreen;

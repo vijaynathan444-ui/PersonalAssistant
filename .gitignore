@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.npm
+
+# React Native
+.buckconfig
+.metro-health-check*
+
+# Android
+android/app/build/
+android/app/.cxx/
+android/.cxx/
+android/.gradle/
+android/build/
+android/local.properties
+android/captures/
+android/app/src/main/jniLibs/
+*.hprof
+*.apk
+*.aab
+
+# llama.cpp (cloned at build time)
+android/app/src/main/cpp/llama.cpp/
+
+# Models (too large for git)
+models/*.gguf
+voice/vosk-model-*/
+
+# Signing
+android/release.keystore
+android/keystore.properties
+*.keystore
+*.jks
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# macOS
+.DS_Store
+*.pbxuser
+!default.pbxuser
+
+# Testing
+coverage/
+
+# Misc
+*.log
+*.tsbuildinfo
+.env
+.env.*
