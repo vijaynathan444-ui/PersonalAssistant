@@ -32,6 +32,14 @@ const SettingsScreen: React.FC = () => {
   const [isCopying, setIsCopying] = useState(false);
 
   const handleSelectCatalogModel = useCallback(async (entry: ModelCatalogEntry) => {
+    if (!entry.bundled) {
+      Alert.alert(
+        'Bundled Model Only',
+        `"${entry.name}" is not bundled in this APK. This build only allows the bundled local model or a manually imported .gguf file.`,
+      );
+      return;
+    }
+
     // Update settings with catalog model defaults
     setContextSize(String(entry.contextWindow));
     setThreads(String(entry.defaultThreads));
@@ -331,7 +339,7 @@ const SettingsScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#16213e',
+    backgroundColor: '#0d1117',
   },
   scroll: {
     flex: 1,
@@ -343,17 +351,17 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#82aaff',
+    color: '#58a6ff',
     marginTop: 20,
     marginBottom: 8,
     marginLeft: 4,
   },
   card: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#161b22',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#2a2a4a',
+    borderColor: '#21262d',
   },
   label: {
     fontSize: 13,
@@ -362,11 +370,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   input: {
-    backgroundColor: '#2a2a4a',
+    backgroundColor: '#0d1117',
     borderRadius: 8,
     padding: 12,
-    color: '#fff',
+    color: '#e6edf3',
     fontSize: 14,
+    borderWidth: 1,
+    borderColor: '#21262d',
   },
   multilineInput: {
     minHeight: 80,
@@ -385,7 +395,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statusText: {
-    color: '#ccc',
+    color: '#c9d1d9',
     fontSize: 14,
     marginBottom: 4,
   },
@@ -401,15 +411,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButton: {
-    backgroundColor: '#0a84ff',
+    backgroundColor: '#238636',
   },
   secondaryButton: {
-    backgroundColor: '#2a2a4a',
+    backgroundColor: '#21262d',
     borderWidth: 1,
-    borderColor: '#444',
+    borderColor: '#30363d',
   },
   dangerButton: {
-    backgroundColor: '#d32f2f',
+    backgroundColor: '#da3633',
   },
   buttonText: {
     color: '#fff',

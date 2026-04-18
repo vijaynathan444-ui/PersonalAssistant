@@ -45,8 +45,14 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
 
-  const selectedModel = MODEL_CATALOG.find(m => m.id === selectedModelId);
+  const bundledModels = MODEL_CATALOG
+    .filter(m => m.bundled)
+    .sort((a, b) => a.rank - b.rank);
+
+  const selectedModel =
+    MODEL_CATALOG.find(m => m.id === selectedModelId && m.bundled) ?? bundledModels[0];
   const loadedModel = MODEL_CATALOG.find(m => m.id === loadedModelId);
+  const displayModel = loadedModel ?? selectedModel;
 
   const handleSelect = useCallback(
     (entry: ModelCatalogEntry) => {
@@ -56,7 +62,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
     [onSelectModel],
   );
 
-  const sortedModels = [...MODEL_CATALOG].sort((a, b) => a.rank - b.rank);
+  const sortedModels = bundledModels.length > 0 ? bundledModels : [...MODEL_CATALOG].sort((a, b) => a.rank - b.rank);
 
   return (
     <View style={styles.container}>
@@ -71,17 +77,17 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
             <ActivityIndicator size="small" color="#6C63FF" />
             <Text style={styles.loadingText}>Loading model...</Text>
           </View>
-        ) : loadedModel ? (
+        ) : displayModel ? (
           <View style={styles.selectedRow}>
-            <Text style={styles.selectedName}>{loadedModel.name}</Text>
-            <View style={[styles.tierBadge, {backgroundColor: TIER_COLORS[loadedModel.tier]}]}>
-              <Text style={styles.tierText}>{loadedModel.tier}</Text>
+            <Text style={styles.selectedName}>{displayModel.name}</Text>
+            <View style={[styles.tierBadge, {backgroundColor: TIER_COLORS[displayModel.tier]}]}>
+              <Text style={styles.tierText}>{displayModel.tier}</Text>
             </View>
             <Text style={styles.chevron}>▼</Text>
           </View>
         ) : (
           <View style={styles.selectedRow}>
-            <Text style={styles.placeholderText}>Choose a model...</Text>
+            <Text style={styles.placeholderText}>Bundled model only</Text>
             <Text style={styles.chevron}>▼</Text>
           </View>
         )}
@@ -116,7 +122,7 @@ const ModelSelector: React.FC<ModelSelectorProps> = ({
               </TouchableOpacity>
             </View>
             <Text style={styles.modalSubtitle}>
-              Ranked by performance, accuracy & efficiency
+              Only bundled local models are available in this build
             </Text>
             <ScrollView style={styles.modelList} showsVerticalScrollIndicator={false}>
               {sortedModels.map(model => (

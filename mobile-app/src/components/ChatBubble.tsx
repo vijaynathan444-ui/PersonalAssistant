@@ -8,23 +8,23 @@ interface ChatBubbleProps {
 }
 
 const markdownStyles = {
-  body: {color: '#e0e0e0', fontSize: 15},
+  body: {color: '#c9d1d9', fontSize: 15},
   code_inline: {
-    backgroundColor: '#2a2a4a',
-    color: '#82aaff',
-    paddingHorizontal: 4,
-    borderRadius: 3,
+    backgroundColor: '#1b2430',
+    color: '#79c0ff',
+    paddingHorizontal: 5,
+    borderRadius: 4,
   },
   code_block: {
-    backgroundColor: '#1a1a3e',
-    padding: 10,
-    borderRadius: 6,
-    color: '#82aaff',
+    backgroundColor: '#0d1117',
+    padding: 12,
+    borderRadius: 8,
+    color: '#79c0ff',
   },
-  link: {color: '#64b5f6'},
-  heading1: {color: '#ffffff', fontSize: 20, fontWeight: 'bold' as const},
-  heading2: {color: '#ffffff', fontSize: 18, fontWeight: 'bold' as const},
-  strong: {color: '#ffffff'},
+  link: {color: '#58a6ff'},
+  heading1: {color: '#e6edf3', fontSize: 20, fontWeight: 'bold' as const},
+  heading2: {color: '#e6edf3', fontSize: 18, fontWeight: 'bold' as const},
+  strong: {color: '#e6edf3'},
 };
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({message}) => {
@@ -33,11 +33,23 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({message}) => {
 
   return (
     <View style={[styles.container, isUser ? styles.userContainer : styles.assistantContainer]}>
-      <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
-        {isUser ? (
-          <Text style={styles.userText}>{message.content}</Text>
-        ) : (
-          <Markdown style={markdownStyles}>{message.content}</Markdown>
+      <View style={styles.bubbleRow}>
+        {!isUser && (
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>AI</Text>
+          </View>
+        )}
+        <View style={[styles.bubble, isUser ? styles.userBubble : styles.assistantBubble]}>
+          {isUser ? (
+            <Text style={styles.userText}>{message.content}</Text>
+          ) : (
+            <Markdown style={markdownStyles}>{message.content}</Markdown>
+          )}
+        </View>
+        {isUser && (
+          <View style={[styles.avatar, styles.userAvatar]}>
+            <Text style={styles.avatarText}>You</Text>
+          </View>
         )}
       </View>
       {!isUser && citations.length > 0 && (
@@ -61,7 +73,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({message}) => {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 4,
+    marginVertical: 6,
     marginHorizontal: 12,
   },
   userContainer: {
@@ -70,29 +82,53 @@ const styles = StyleSheet.create({
   assistantContainer: {
     alignItems: 'flex-start',
   },
+  bubbleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: 8,
+  },
+  avatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#21262d',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  userAvatar: {
+    backgroundColor: '#1f6feb',
+  },
+  avatarText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#e6edf3',
+  },
   bubble: {
-    maxWidth: '85%',
+    maxWidth: '78%',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 18,
   },
   userBubble: {
-    backgroundColor: '#0a84ff',
+    backgroundColor: '#1f6feb',
     borderBottomRightRadius: 4,
   },
   assistantBubble: {
-    backgroundColor: '#2a2a4a',
+    backgroundColor: '#161b22',
     borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: '#21262d',
   },
   userText: {
     color: '#ffffff',
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 21,
   },
   timestamp: {
     fontSize: 11,
-    color: '#666',
-    marginTop: 2,
+    color: '#484f58',
+    marginTop: 3,
   },
   citationsRow: {
     flexDirection: 'row',
@@ -100,22 +136,25 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 6,
     maxWidth: '85%',
+    marginLeft: 36,
   },
   citationChip: {
-    backgroundColor: '#1f3b57',
+    backgroundColor: '#0d2d4d',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: '#1f6feb44',
   },
   citationText: {
-    color: '#bfe1ff',
+    color: '#58a6ff',
     fontSize: 11,
   },
   timestampRight: {
-    marginRight: 4,
+    marginRight: 36,
   },
   timestampLeft: {
-    marginLeft: 4,
+    marginLeft: 36,
   },
 });
 

@@ -1,6 +1,7 @@
 import {MMKV} from 'react-native-mmkv';
 import type {
   ChatMessage,
+  ChatSession,
   AppSettings,
   ProjectMemory,
   KnowledgeItem,
@@ -15,6 +16,8 @@ const storage = new MMKV({
 
 const KEYS = {
   CHAT_HISTORY: 'chat_history',
+  CONVERSATIONS: 'conversations',
+  ACTIVE_CONVERSATION_ID: 'active_conversation_id',
   SETTINGS: 'app_settings',
   ONBOARDED: 'onboarded',
   PROJECTS: 'projects',
@@ -58,6 +61,39 @@ class StorageService {
 
   clearChatHistory(): void {
     storage.delete(KEYS.CHAT_HISTORY);
+  }
+
+  // Conversations
+  getConversations(): ChatSession[] {
+    return this.readJson(KEYS.CONVERSATIONS, []);
+  }
+
+  saveConversations(conversations: ChatSession[]): void {
+    storage.set(KEYS.CONVERSATIONS, JSON.stringify(conversations));
+  }
+
+  getActiveConversationId(): string | null {
+    return storage.getString(KEYS.ACTIVE_CONVERSATION_ID) ?? null;
+  }
+
+  setActiveConversationId(id: string | null): void {
+    if (!id) {
+      storage.delete(KEYS.ACTIVE_CONVERSATION_ID);
+      return;
+    }
+    storage.set(KEYS.ACTIVE_CONVERSATION_ID, id);
+  }
+
+  getConversationMessages(conversationId: string): ChatMessage[] {
+    return this.readJson(`conv_messages_${conversationId}`, []);
+  }
+
+  saveConversationMessages(conversationId: string, messages: ChatMessage[]): void {
+    storage.set(`conv_messages_${conversationId}`, JSON.stringify(messages));
+  }
+
+  deleteConversationMessages(conversationId: string): void {
+    storage.delete(`conv_messages_${conversationId}`);
   }
 
   // Settings

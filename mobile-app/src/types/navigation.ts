@@ -1,5 +1,6 @@
 export type RootStackParamList = {
-  Chat: undefined;
+  Chat: {conversationId?: string} | undefined;
+  ChatHistory: undefined;
   Knowledge: undefined;
   Settings: undefined;
 };

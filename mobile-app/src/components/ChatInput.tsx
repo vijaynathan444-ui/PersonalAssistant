@@ -50,7 +50,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
         value={text}
         onChangeText={setText}
         placeholder="Type a message..."
-        placeholderTextColor="#666"
+        placeholderTextColor="#484f58"
         multiline
         maxLength={5000}
         editable={!isGenerating}
@@ -79,48 +79,53 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    backgroundColor: '#1a1a2e',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: '#0d1117',
     borderTopWidth: 1,
-    borderTopColor: '#2a2a4a',
+    borderTopColor: '#21262d',
   },
   input: {
     flex: 1,
-    backgroundColor: '#2a2a4a',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    color: '#ffffff',
+    backgroundColor: '#161b22',
+    borderRadius: 22,
+    paddingHorizontal: 18,
+    paddingVertical: 11,
+    color: '#e6edf3',
     fontSize: 15,
     maxHeight: 100,
     marginHorizontal: 8,
+    borderWidth: 1,
+    borderColor: '#21262d',
   },
   sendButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#0a84ff',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#238636',
     justifyContent: 'center',
     alignItems: 'center',
   },
   sendButtonDisabled: {
-    backgroundColor: '#333',
+    backgroundColor: '#21262d',
   },
   sendIcon: {
     color: '#ffffff',
     fontSize: 18,
   },
   micButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#2a2a4a',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#161b22',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#21262d',
   },
   micButtonActive: {
-    backgroundColor: '#e53935',
+    backgroundColor: '#da3633',
+    borderColor: '#da3633',
   },
   micIcon: {
     fontSize: 18,

@@ -75,6 +75,15 @@ export interface ModelInfo {
   modelId?: string;
 }
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  createdAt: number;
+  updatedAt: number;
+  messageCount: number;
+  preview: string;
+}
+
 export interface DeviceSecurityInfo {
   isRooted: boolean;
   isEmulator: boolean;
@@ -115,9 +124,9 @@ export const MODEL_CATALOG: ModelCatalogEntry[] = [
     name: 'Phi-3.1 Mini 4K',
     family: 'Phi',
     parameters: '3.8B',
-    quantization: 'Q4_K_M',
-    sizeGB: 2.3,
-    minRAMGB: 4,
+    quantization: 'Q3_K_S',
+    sizeGB: 1.6,
+    minRAMGB: 3,
     contextWindow: 4096,
     defaultMaxTokens: 1024,
     defaultThreads: 4,
@@ -130,7 +139,7 @@ export const MODEL_CATALOG: ModelCatalogEntry[] = [
     weaknesses: ['Limited multilingual'],
     hallucinationRisk: 'low',
     fileName: 'phi3.1-mini-4k-q4.gguf',
-    bundled: false,
+    bundled: true,
     rank: 1,
   },
   {
@@ -138,8 +147,8 @@ export const MODEL_CATALOG: ModelCatalogEntry[] = [
     name: 'Gemma 2 2B',
     family: 'Gemma',
     parameters: '2B',
-    quantization: 'Q4_K_M',
-    sizeGB: 1.5,
+    quantization: 'Q4_K_S',
+    sizeGB: 1.6,
     minRAMGB: 3,
     contextWindow: 8192,
     defaultMaxTokens: 1024,
@@ -153,7 +162,7 @@ export const MODEL_CATALOG: ModelCatalogEntry[] = [
     weaknesses: ['Smaller knowledge base'],
     hallucinationRisk: 'medium',
     fileName: 'gemma2-2b-q4.gguf',
-    bundled: false,
+    bundled: true,
     rank: 2,
   },
   {
@@ -268,7 +277,7 @@ export const MODEL_CATALOG: ModelCatalogEntry[] = [
     weaknesses: ['Low accuracy', 'High hallucination', 'Short context'],
     hallucinationRisk: 'high',
     fileName: 'tinyllama-1.1b-q4.gguf',
-    bundled: true,
+    bundled: false,
     rank: 7,
   },
   {
@@ -360,13 +369,18 @@ export interface AppSettings {
   theme: 'dark' | 'light';
 }
 
+const DEFAULT_BUNDLED_MODEL =
+  MODEL_CATALOG.find(m => m.bundled && m.hallucinationRisk === 'low') ??
+  MODEL_CATALOG.find(m => m.bundled) ??
+  MODEL_CATALOG[0];
+
 export const DEFAULT_SETTINGS: AppSettings = {
   modelConfig: {
     modelPath: '',
-    contextSize: 2048,
-    threads: 4,
-    maxTokens: 512,
-    selectedModelId: 'tinyllama-1.1b-q4',
+    contextSize: DEFAULT_BUNDLED_MODEL.contextWindow,
+    threads: DEFAULT_BUNDLED_MODEL.defaultThreads,
+    maxTokens: DEFAULT_BUNDLED_MODEL.defaultMaxTokens,
+    selectedModelId: DEFAULT_BUNDLED_MODEL.id,
   },
   voiceEnabled: true,
   systemPrompt:

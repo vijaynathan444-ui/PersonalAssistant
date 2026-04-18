@@ -4,6 +4,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import ChatScreen from './mobile-app/src/screens/ChatScreen';
+import ChatHistoryScreen from './mobile-app/src/screens/ChatHistoryScreen';
 import KnowledgeScreen from './mobile-app/src/screens/KnowledgeScreen';
 import SettingsScreen from './mobile-app/src/screens/SettingsScreen';
 import {RootStackParamList} from './mobile-app/src/types/navigation';
@@ -17,15 +18,21 @@ const App: React.FC = () => {
         <Stack.Navigator
           initialRouteName="Chat"
           screenOptions={{
-            headerStyle: {backgroundColor: '#1a1a2e'},
-            headerTintColor: '#ffffff',
-            headerTitleStyle: {fontWeight: 'bold'},
-            contentStyle: {backgroundColor: '#16213e'},
+            headerStyle: {backgroundColor: '#0d1117'},
+            headerTintColor: '#e6edf3',
+            headerTitleStyle: {fontWeight: '600'},
+            contentStyle: {backgroundColor: '#0d1117'},
+            headerShadowVisible: false,
           }}>
           <Stack.Screen
             name="Chat"
             component={ChatScreen}
             options={{title: 'LocalAI Assistant'}}
+          />
+          <Stack.Screen
+            name="ChatHistory"
+            component={ChatHistoryScreen}
+            options={{title: 'Chat History'}}
           />
           <Stack.Screen
             name="Knowledge"

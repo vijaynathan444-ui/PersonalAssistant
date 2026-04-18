@@ -80,12 +80,17 @@ export function useLLM() {
         promptService.setPromptTemplate(catalogEntry.promptTemplate);
         llmService.setCurrentModelId(catalogEntry.id);
       } else {
-        // Auto-detect: if selectedModelId is set, load that catalog model
-        if (modelConfig.selectedModelId) {
+        const preferredBundledEntry =
+          MODEL_CATALOG.find(m => m.bundled && m.hallucinationRisk === 'low') ??
+          MODEL_CATALOG.find(m => m.bundled);
+
+        // Auto-detect: prefer a bundled local model on startup.
+        if (modelConfig.selectedModelId || preferredBundledEntry) {
           const savedEntry = MODEL_CATALOG.find(m => m.id === modelConfig.selectedModelId);
-          if (savedEntry) {
+          const entryToLoad = savedEntry?.bundled ? savedEntry : preferredBundledEntry;
+          if (entryToLoad) {
             setIsModelLoading(false);
-            return loadModel(savedEntry);
+            return loadModel(entryToLoad);
           }
         }
 

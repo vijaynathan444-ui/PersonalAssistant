@@ -60,6 +60,20 @@ const ChatScreen: React.FC = () => {
         <View style={styles.headerButtons}>
           <TouchableOpacity
             onPress={() => {
+              useAppStore.getState().createConversation();
+            }}
+            style={styles.headerButton}
+            accessibilityLabel="New chat">
+            <Text style={styles.headerButtonText}>✎</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('ChatHistory')}
+            style={styles.headerButton}
+            accessibilityLabel="Chat history">
+            <Text style={styles.headerButtonText}>☰</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
               Alert.alert(
                 'Clear Chat',
                 'Are you sure you want to clear all messages?',
@@ -78,16 +92,10 @@ const ChatScreen: React.FC = () => {
             <Text style={styles.headerButtonText}>🗑</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => navigation.navigate('Knowledge')}
-            style={styles.headerButton}
-            accessibilityLabel="Project memory">
-            <Text style={styles.headerButtonText}>📚</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
             onPress={() => navigation.navigate('Settings')}
             style={styles.headerButton}
             accessibilityLabel="Settings">
-            <Text style={styles.headerButtonText}>⚙️</Text>
+            <Text style={styles.headerButtonText}>⚙</Text>
           </TouchableOpacity>
         </View>
       ),
@@ -241,17 +249,18 @@ const ChatScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#16213e',
+    backgroundColor: '#0d1117',
   },
   headerButtons: {
     flexDirection: 'row',
-    gap: 4,
+    gap: 2,
   },
   headerButton: {
     padding: 8,
   },
   headerButtonText: {
     fontSize: 18,
+    color: '#e6edf3',
   },
   messageList: {
     flex: 1,
@@ -261,40 +270,41 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 4,
     padding: 16,
-    borderRadius: 18,
-    backgroundColor: '#1d3a53',
+    borderRadius: 14,
+    backgroundColor: '#0d2d4d',
     borderWidth: 1,
-    borderColor: '#345c7f',
+    borderColor: '#1f6feb44',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   projectBannerEmpty: {
-    backgroundColor: '#2c244a',
-    borderColor: '#4d4180',
+    backgroundColor: '#1c1136',
+    borderColor: '#6e40c944',
   },
   projectBannerLabel: {
-    fontSize: 12,
-    letterSpacing: 0.8,
+    fontSize: 11,
+    letterSpacing: 1,
     textTransform: 'uppercase',
-    color: '#9fd7ff',
+    color: '#58a6ff',
     marginBottom: 4,
+    fontWeight: '600',
   },
   projectBannerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#ffffff',
+    color: '#e6edf3',
   },
   projectBannerSubtitle: {
     marginTop: 4,
     fontSize: 13,
     lineHeight: 18,
-    color: '#c1d6ea',
+    color: '#7d8590',
     maxWidth: 280,
   },
   projectBannerArrow: {
-    fontSize: 28,
-    color: '#ffffff',
+    fontSize: 24,
+    color: '#e6edf3',
   },
   messageContent: {
     paddingVertical: 8,
@@ -305,30 +315,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
-    paddingTop: 100,
+    paddingTop: 80,
   },
   emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
+    fontSize: 56,
+    marginBottom: 20,
   },
   emptyTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    marginBottom: 8,
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#e6edf3',
+    marginBottom: 10,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#999',
+    color: '#7d8590',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 21,
   },
   setupButton: {
-    marginTop: 16,
-    backgroundColor: '#0a84ff',
+    marginTop: 20,
+    backgroundColor: '#238636',
     paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
+    paddingHorizontal: 28,
+    borderRadius: 12,
     alignSelf: 'center',
   },
   setupButtonText: {

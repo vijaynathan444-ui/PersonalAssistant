@@ -1,6 +1,7 @@
 import {create} from 'zustand';
 import type {
   ChatMessage,
+  ChatSession,
   AppSettings,
   ModelInfo,
   ProjectMemory,
@@ -14,6 +15,10 @@ interface AppState {
   // Chat
   messages: ChatMessage[];
   isGenerating: boolean;
+
+  // Conversations
+  conversations: ChatSession[];
+  activeConversationId: string | null;
 
   // Model
   modelInfo: ModelInfo | null;
@@ -49,6 +54,9 @@ interface AppState {
   setActiveProjectId: (projectId: string | null) => void;
   setKnowledgeItems: (items: KnowledgeItem[]) => void;
   setKnowledgeChunks: (chunks: KnowledgeChunk[]) => void;
+  createConversation: () => string;
+  switchConversation: (id: string) => void;
+  deleteConversation: (id: string) => void;
   loadPersistedState: () => void;
 }
 
@@ -56,6 +64,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Initial state
   messages: [],
   isGenerating: false,
+  conversations: [],
+  activeConversationId: null,
   modelInfo: null,
   isModelLoading: false,
   isListening: false,
@@ -69,16 +79,74 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   // Actions
   addMessage: (message: ChatMessage) => {
-    const updated = storageService.addMessage(message);
-    set({messages: updated});
+    const {activeConversationId, conversations} = get();
+    // Ensure we have an active conversation
+    let convId = activeConversationId;
+    if (!convId) {
+      convId = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      const newConv: ChatSession = {
+        id: convId,
+        title: message.role === 'user' ? message.content.slice(0, 50) : 'New Chat',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        messageCount: 0,
+        preview: message.content.slice(0, 80),
+      };
+      const updated = [newConv, ...conversations];
+      storageService.saveConversations(updated);
+      storageService.setActiveConversationId(convId);
+      set({conversations: updated, activeConversationId: convId});
+    }
+
+    // Save message to conversation
+    const msgs = storageService.getConversationMessages(convId);
+    msgs.push(message);
+    const settings = get().settings;
+    const trimmed = msgs.slice(-settings.maxHistoryMessages * 2);
+    storageService.saveConversationMessages(convId, trimmed);
+
+    // Update conversation metadata
+    const convs = get().conversations.map(c =>
+      c.id === convId
+        ? {
+            ...c,
+            updatedAt: Date.now(),
+            messageCount: trimmed.length,
+            preview: message.content.slice(0, 80),
+            title: c.messageCount === 0 && message.role === 'user'
+              ? message.content.slice(0, 50)
+              : c.title,
+          }
+        : c,
+    );
+    storageService.saveConversations(convs);
+
+    // Also save to legacy flat history for backward compat
+    storageService.addMessage(message);
+    set({messages: trimmed, conversations: convs});
   },
 
   setMessages: (messages: ChatMessage[]) => {
+    const {activeConversationId} = get();
+    if (activeConversationId) {
+      storageService.saveConversationMessages(activeConversationId, messages);
+    }
     storageService.saveChatHistory(messages);
     set({messages});
   },
 
   clearMessages: () => {
+    const {activeConversationId} = get();
+    if (activeConversationId) {
+      storageService.saveConversationMessages(activeConversationId, []);
+      const convs = get().conversations.map(c =>
+        c.id === activeConversationId
+          ? {...c, messageCount: 0, preview: '', updatedAt: Date.now()}
+          : c,
+      );
+      storageService.saveConversations(convs);
+      set({conversations: convs});
+    }
     storageService.clearChatHistory();
     set({messages: []});
   },
@@ -135,8 +203,50 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({knowledgeChunks: chunks});
   },
 
+  createConversation: () => {
+    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const newConv: ChatSession = {
+      id,
+      title: 'New Chat',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      messageCount: 0,
+      preview: '',
+    };
+    const convs = [newConv, ...get().conversations];
+    storageService.saveConversations(convs);
+    storageService.setActiveConversationId(id);
+    set({conversations: convs, activeConversationId: id, messages: []});
+    return id;
+  },
+
+  switchConversation: (id: string) => {
+    const messages = storageService.getConversationMessages(id);
+    storageService.setActiveConversationId(id);
+    set({activeConversationId: id, messages});
+  },
+
+  deleteConversation: (id: string) => {
+    storageService.deleteConversationMessages(id);
+    const convs = get().conversations.filter(c => c.id !== id);
+    storageService.saveConversations(convs);
+    const {activeConversationId} = get();
+    if (activeConversationId === id) {
+      const nextId = convs.length > 0 ? convs[0].id : null;
+      const messages = nextId ? storageService.getConversationMessages(nextId) : [];
+      storageService.setActiveConversationId(nextId);
+      set({conversations: convs, activeConversationId: nextId, messages});
+    } else {
+      set({conversations: convs});
+    }
+  },
+
   loadPersistedState: () => {
-    const messages = storageService.getChatHistory();
+    const conversations = storageService.getConversations();
+    const activeConversationId = storageService.getActiveConversationId();
+    const messages = activeConversationId
+      ? storageService.getConversationMessages(activeConversationId)
+      : storageService.getChatHistory();
     const settings = storageService.getSettings();
     const projects = storageService.getProjects();
     const storedActiveProjectId = storageService.getActiveProjectId();
@@ -151,6 +261,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set({
       messages,
+      conversations,
+      activeConversationId,
       settings,
       voiceEnabled: settings.voiceEnabled,
       projects,

@@ -5,7 +5,7 @@ const TypingIndicator: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.bubble}>
-        <ActivityIndicator size="small" color="#82aaff" />
+        <ActivityIndicator size="small" color="#58a6ff" />
         <Text style={styles.text}>Thinking...</Text>
       </View>
     </View>
@@ -14,22 +14,25 @@ const TypingIndicator: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 4,
+    marginVertical: 6,
     marginHorizontal: 12,
     alignItems: 'flex-start',
   },
   bubble: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2a2a4a',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
+    backgroundColor: '#161b22',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderRadius: 18,
     borderBottomLeftRadius: 4,
-    gap: 8,
+    borderWidth: 1,
+    borderColor: '#21262d',
+    gap: 10,
+    marginLeft: 36,
   },
   text: {
-    color: '#82aaff',
+    color: '#58a6ff',
     fontSize: 13,
     fontStyle: 'italic',
   },
