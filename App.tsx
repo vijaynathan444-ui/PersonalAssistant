@@ -4,6 +4,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import ChatScreen from './mobile-app/src/screens/ChatScreen';
+import KnowledgeScreen from './mobile-app/src/screens/KnowledgeScreen';
 import SettingsScreen from './mobile-app/src/screens/SettingsScreen';
 import {RootStackParamList} from './mobile-app/src/types/navigation';
 
@@ -25,6 +26,11 @@ const App: React.FC = () => {
             name="Chat"
             component={ChatScreen}
             options={{title: 'LocalAI Assistant'}}
+          />
+          <Stack.Screen
+            name="Knowledge"
+            component={KnowledgeScreen}
+            options={{title: 'Project Memory'}}
           />
           <Stack.Screen
             name="Settings"

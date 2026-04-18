@@ -43,6 +43,31 @@ describe('PromptService', () => {
       expect(prompt).toContain('Tell me more');
     });
 
+    it('should include project and retrieved citations when provided', () => {
+      const prompt = promptService.buildPrompt([], 'Summarize it', {
+        project: {
+          id: 'project_1',
+          name: 'Roadmap',
+          description: 'Quarterly goals',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+        citations: [
+          {
+            itemId: 'item_1',
+            title: 'Goals.md',
+            sourceType: 'file',
+            fileType: 'md',
+            excerpt: 'Launch Android release in Q2.',
+            score: 8,
+          },
+        ],
+      });
+
+      expect(prompt).toContain('Current project: Roadmap');
+      expect(prompt).toContain('Goals.md: Launch Android release in Q2.');
+    });
+
     it('should limit context to last 10 messages', () => {
       const messages: ChatMessage[] = [];
       for (let i = 0; i < 20; i++) {

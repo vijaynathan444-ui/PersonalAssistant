@@ -4,6 +4,7 @@ import '@testing-library/jest-native/extend-expect';
 jest.mock('react-native-mmkv', () => ({
   MMKV: jest.fn().mockImplementation(() => ({
     getString: jest.fn(),
+    getBoolean: jest.fn(),
     set: jest.fn(),
     delete: jest.fn(),
     contains: jest.fn(),
@@ -11,28 +12,51 @@ jest.mock('react-native-mmkv', () => ({
   })),
 }));
 
-// Mock NativeModules
-jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
-  get: jest.fn(),
-  getEnforcing: jest.fn(),
+jest.mock('react-native-document-picker', () => ({
+  __esModule: true,
+  default: {
+    pickSingle: jest.fn(),
+    types: {
+      allFiles: '*/*',
+    },
+  },
 }));
 
-// Mock LLM native module
-jest.mock('react-native', () => {
-  const rn = jest.requireActual('react-native');
-  rn.NativeModules.LLMModule = {
-    loadModel: jest.fn(() => Promise.resolve(true)),
-    runInference: jest.fn(() => Promise.resolve('Test response')),
-    unloadModel: jest.fn(() => Promise.resolve()),
-    getModelInfo: jest.fn(() => Promise.resolve({ loaded: true, contextSize: 2048 })),
-  };
-  rn.NativeModules.VoskModule = {
-    initialize: jest.fn(() => Promise.resolve(true)),
-    startListening: jest.fn(() => Promise.resolve()),
-    stopListening: jest.fn(() => Promise.resolve()),
-  };
-  return rn;
-});
+jest.mock('react-native-image-picker', () => ({
+  launchImageLibrary: jest.fn(() => Promise.resolve({didCancel: true})),
+}));
+
+jest.mock('react-native-fs', () => ({
+  readFile: jest.fn(),
+}));
+
+const ReactNative = require('react-native');
+
+ReactNative.NativeModules.LLMModule = {
+  loadModel: jest.fn(() => Promise.resolve(true)),
+  runInference: jest.fn(() => Promise.resolve('Test response')),
+  unloadModel: jest.fn(() => Promise.resolve()),
+  getModelInfo: jest.fn(() => Promise.resolve({loaded: true, contextSize: 2048})),
+};
+
+ReactNative.NativeModules.VoskModule = {
+  initialize: jest.fn(() => Promise.resolve(true)),
+  startListening: jest.fn(() => Promise.resolve()),
+  stopListening: jest.fn(() => Promise.resolve()),
+};
+
+ReactNative.NativeModules.SecurityModule = {
+  isDeviceSecure: jest.fn(() =>
+    Promise.resolve({
+      isRooted: false,
+      isEmulator: false,
+      isDebuggerAttached: false,
+      secure: true,
+    }),
+  ),
+  encryptData: jest.fn(() => Promise.resolve('encrypted_base64')),
+  decryptData: jest.fn(() => Promise.resolve('decrypted_text')),
+};
 
 // Mock react-native-tts
 jest.mock('react-native-tts', () => ({

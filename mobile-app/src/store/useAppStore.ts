@@ -1,5 +1,12 @@
 import {create} from 'zustand';
-import type {ChatMessage, AppSettings, ModelInfo} from '../types';
+import type {
+  ChatMessage,
+  AppSettings,
+  ModelInfo,
+  ProjectMemory,
+  KnowledgeItem,
+  KnowledgeChunk,
+} from '../types';
 import {DEFAULT_SETTINGS} from '../types';
 import storageService from '../services/StorageService';
 
@@ -20,6 +27,12 @@ interface AppState {
   // Settings
   settings: AppSettings;
 
+  // Project memory
+  projects: ProjectMemory[];
+  activeProjectId: string | null;
+  knowledgeItems: KnowledgeItem[];
+  knowledgeChunks: KnowledgeChunk[];
+
   // Actions
   addMessage: (message: ChatMessage) => void;
   setMessages: (messages: ChatMessage[]) => void;
@@ -31,6 +44,11 @@ interface AppState {
   setIsSpeaking: (value: boolean) => void;
   setVoiceEnabled: (value: boolean) => void;
   updateSettings: (settings: Partial<AppSettings>) => void;
+  setProjects: (projects: ProjectMemory[]) => void;
+  addProject: (project: ProjectMemory) => void;
+  setActiveProjectId: (projectId: string | null) => void;
+  setKnowledgeItems: (items: KnowledgeItem[]) => void;
+  setKnowledgeChunks: (chunks: KnowledgeChunk[]) => void;
   loadPersistedState: () => void;
 }
 
@@ -44,6 +62,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   isSpeaking: false,
   voiceEnabled: true,
   settings: DEFAULT_SETTINGS,
+  projects: [],
+  activeProjectId: null,
+  knowledgeItems: [],
+  knowledgeChunks: [],
 
   // Actions
   addMessage: (message: ChatMessage) => {
@@ -79,13 +101,62 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({settings: merged});
   },
 
+  setProjects: (projects: ProjectMemory[]) => {
+    storageService.saveProjects(projects);
+    set({projects});
+  },
+
+  addProject: (project: ProjectMemory) => {
+    const projects = [...get().projects, project];
+    storageService.saveProjects(projects);
+
+    const currentActiveProjectId = get().activeProjectId;
+    if (!currentActiveProjectId) {
+      storageService.setActiveProjectId(project.id);
+      set({projects, activeProjectId: project.id});
+      return;
+    }
+
+    set({projects});
+  },
+
+  setActiveProjectId: (projectId: string | null) => {
+    storageService.setActiveProjectId(projectId);
+    set({activeProjectId: projectId});
+  },
+
+  setKnowledgeItems: (items: KnowledgeItem[]) => {
+    storageService.saveKnowledgeItems(items);
+    set({knowledgeItems: items});
+  },
+
+  setKnowledgeChunks: (chunks: KnowledgeChunk[]) => {
+    storageService.saveKnowledgeChunks(chunks);
+    set({knowledgeChunks: chunks});
+  },
+
   loadPersistedState: () => {
     const messages = storageService.getChatHistory();
     const settings = storageService.getSettings();
+    const projects = storageService.getProjects();
+    const storedActiveProjectId = storageService.getActiveProjectId();
+    const activeProjectId =
+      storedActiveProjectId ?? (projects.length > 0 ? projects[0].id : null);
+    const knowledgeItems = storageService.getKnowledgeItems();
+    const knowledgeChunks = storageService.getKnowledgeChunks();
+
+    if (activeProjectId && activeProjectId !== storedActiveProjectId) {
+      storageService.setActiveProjectId(activeProjectId);
+    }
+
     set({
       messages,
       settings,
       voiceEnabled: settings.voiceEnabled,
+      projects,
+      activeProjectId,
+      knowledgeItems,
+      knowledgeChunks,
     });
   },
 }));

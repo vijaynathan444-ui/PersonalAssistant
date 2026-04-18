@@ -2,6 +2,7 @@ import {useCallback} from 'react';
 import {useAppStore} from '../store/useAppStore';
 import llmService from '../services/LLMService';
 import promptService from '../services/PromptService';
+import knowledgeService from '../services/KnowledgeService';
 import type {ChatMessage} from '../types';
 
 export function useLLM() {
@@ -11,6 +12,10 @@ export function useLLM() {
     modelInfo,
     isModelLoading,
     settings,
+    projects,
+    activeProjectId,
+    knowledgeItems,
+    knowledgeChunks,
     addMessage,
     setIsGenerating,
     setModelInfo,
@@ -52,7 +57,19 @@ export function useLLM() {
 
       setIsGenerating(true);
       try {
-        const prompt = promptService.buildPrompt(messages, text);
+        const activeProject =
+          projects.find(project => project.id === activeProjectId) ?? null;
+        const citations = knowledgeService.getRelevantContext(
+          activeProjectId,
+          text,
+          knowledgeItems,
+          knowledgeChunks,
+          settings.retrievalTopK,
+        );
+        const prompt = promptService.buildPrompt(messages, text, {
+          project: activeProject,
+          citations,
+        });
         const response = await llmService.runInference(
           prompt,
           settings.modelConfig.maxTokens,
@@ -63,6 +80,7 @@ export function useLLM() {
           role: 'assistant',
           content: response,
           timestamp: Date.now(),
+          citations,
         };
         addMessage(assistantMessage);
 
@@ -81,7 +99,18 @@ export function useLLM() {
         setIsGenerating(false);
       }
     },
-    [messages, isGenerating, modelInfo, settings, addMessage, setIsGenerating],
+    [
+      messages,
+      isGenerating,
+      modelInfo,
+      settings,
+      projects,
+      activeProjectId,
+      knowledgeItems,
+      knowledgeChunks,
+      addMessage,
+      setIsGenerating,
+    ],
   );
 
   const unloadModel = useCallback(async () => {

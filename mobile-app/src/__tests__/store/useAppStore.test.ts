@@ -1,6 +1,21 @@
 import {useAppStore} from '../../store/useAppStore';
 import type {ChatMessage} from '../../types';
-import {DEFAULT_SETTINGS} from '../../types';
+
+const mockDefaultSettings = {
+  modelConfig: {
+    modelPath: '/data/local/tmp/models/model.gguf',
+    contextSize: 2048,
+    threads: 4,
+    maxTokens: 512,
+  },
+  voiceEnabled: true,
+  systemPrompt:
+    'You are a fast, helpful AI assistant. Use project memory and retrieved sources when they are provided. If sources are missing or weak, say that clearly instead of inventing details. Keep answers short and actionable.',
+  maxHistoryMessages: 20,
+  retrievalTopK: 4,
+  webAccessEnabled: true,
+  theme: 'dark' as const,
+};
 
 // Mock StorageService
 jest.mock('../../services/StorageService', () => ({
@@ -10,16 +25,32 @@ jest.mock('../../services/StorageService', () => ({
     saveChatHistory: jest.fn(),
     addMessage: jest.fn((msg: ChatMessage) => [msg]),
     clearChatHistory: jest.fn(),
-    getSettings: jest.fn(() => DEFAULT_SETTINGS),
+    getSettings: jest.fn(() => mockDefaultSettings),
     saveSettings: jest.fn(),
+    getProjects: jest.fn(() => []),
+    saveProjects: jest.fn(),
+    getActiveProjectId: jest.fn(() => null),
+    setActiveProjectId: jest.fn(),
+    getKnowledgeItems: jest.fn(() => []),
+    saveKnowledgeItems: jest.fn(),
+    getKnowledgeChunks: jest.fn(() => []),
+    saveKnowledgeChunks: jest.fn(),
   },
   storageService: {
     getChatHistory: jest.fn(() => []),
     saveChatHistory: jest.fn(),
     addMessage: jest.fn((msg: ChatMessage) => [msg]),
     clearChatHistory: jest.fn(),
-    getSettings: jest.fn(() => DEFAULT_SETTINGS),
+    getSettings: jest.fn(() => mockDefaultSettings),
     saveSettings: jest.fn(),
+    getProjects: jest.fn(() => []),
+    saveProjects: jest.fn(),
+    getActiveProjectId: jest.fn(() => null),
+    setActiveProjectId: jest.fn(),
+    getKnowledgeItems: jest.fn(() => []),
+    saveKnowledgeItems: jest.fn(),
+    getKnowledgeChunks: jest.fn(() => []),
+    saveKnowledgeChunks: jest.fn(),
   },
 }));
 
@@ -34,7 +65,11 @@ describe('useAppStore', () => {
       isListening: false,
       isSpeaking: false,
       voiceEnabled: true,
-      settings: DEFAULT_SETTINGS,
+      settings: mockDefaultSettings,
+      projects: [],
+      activeProjectId: null,
+      knowledgeItems: [],
+      knowledgeChunks: [],
     });
   });
 
@@ -132,6 +167,53 @@ describe('useAppStore', () => {
       expect(useAppStore.getState().settings.voiceEnabled).toBe(false);
       // Other settings preserved
       expect(useAppStore.getState().settings.modelConfig.contextSize).toBe(2048);
+    });
+  });
+
+  describe('project memory', () => {
+    it('should add and activate a project', () => {
+      useAppStore.getState().addProject({
+        id: 'project_1',
+        name: 'Docs',
+        description: 'Testing project memory',
+        createdAt: 1,
+        updatedAt: 1,
+      });
+
+      expect(useAppStore.getState().projects).toHaveLength(1);
+      expect(useAppStore.getState().activeProjectId).toBe('project_1');
+    });
+
+    it('should persist imported knowledge entities in store state', () => {
+      useAppStore.getState().setKnowledgeItems([
+        {
+          id: 'item_1',
+          projectId: 'project_1',
+          title: 'readme.md',
+          sourceType: 'file',
+          fileType: 'md',
+          status: 'ready',
+          summary: 'Imported markdown file',
+          preview: 'Imported markdown file',
+          contentLength: 21,
+          chunkCount: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ]);
+      useAppStore.getState().setKnowledgeChunks([
+        {
+          id: 'chunk_1',
+          itemId: 'item_1',
+          projectId: 'project_1',
+          text: 'Imported markdown file',
+          keywords: ['imported', 'markdown', 'file'],
+          tokenEstimate: 5,
+        },
+      ]);
+
+      expect(useAppStore.getState().knowledgeItems).toHaveLength(1);
+      expect(useAppStore.getState().knowledgeChunks).toHaveLength(1);
     });
   });
 });

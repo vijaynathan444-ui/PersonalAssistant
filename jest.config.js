@@ -1,6 +1,6 @@
 module.exports = {
   preset: 'react-native',
-  setupFilesAfterSetup: ['./jest.setup.js'],
+  setupFilesAfterEnv: ['./jest.setup.js'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   transformIgnorePatterns: [
     'node_modules/(?!(react-native|@react-native|react-native-mmkv|react-native-vosk|react-native-tts|react-native-markdown-display|@react-navigation|react-native-screens|react-native-safe-area-context|react-native-device-info)/)',

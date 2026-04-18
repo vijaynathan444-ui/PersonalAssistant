@@ -44,9 +44,17 @@ android/keystore.properties
 
 # Testing
 coverage/
+jest-err.txt
+jest-out.txt
+
+# Screenshots (keep only docs/screenshots/ for README)
+*.png
+!docs/screenshots/*.png
 
 # Misc
 *.log
 *.tsbuildinfo
 .env
 .env.*
+*.tmp
+*.bak

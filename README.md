@@ -4,8 +4,25 @@
 
 - No backend, no internet dependency
 - Voice + Chat interface
+- Project memory with local source retrieval
 - Production-grade security (AES-256 encryption, root detection, ProGuard obfuscation)
 - Runs GGUF quantized models directly on device
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/chat-home.png" width="250" alt="Chat Home Screen" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/chat-response.png" width="250" alt="Chat Response" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/release-build.png" width="250" alt="Release Build" />
+</p>
+
+| Screen | Description |
+|---|---|
+| **Chat Home** | Main chat interface with voice input, model status bar showing context size |
+| **Chat Response** | AI responding to user message — fully offline, on-device inference |
+| **Release Build** | Production APK running on device/emulator |
 
 ## Architecture
 
@@ -41,13 +58,21 @@ chmod +x scripts/setup.sh && ./scripts/setup.sh
 
 ### 2. Download a GGUF Model
 
-Choose based on your device RAM:
+**Recommended:** Phi-3.1-mini-4k-instruct Q4_K_M (MIT license, ~2.3GB)
 
-| Device RAM | Model | Download |
-|---|---|---|
-| 4GB | TinyLlama 1.1B Q4_K_M | [HuggingFace](https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF) |
-| 6GB | Phi-2 Q4_K_M | [HuggingFace](https://huggingface.co/TheBloke/phi-2-GGUF) |
-| 8GB+ | Mistral 7B Q4_K_M | [HuggingFace](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) |
+```bash
+# Auto-download recommended model
+scripts/download-model.sh    # macOS/Linux
+scripts\download-model.bat   # Windows
+```
+
+Or choose based on your device RAM:
+
+| Device RAM | Model | Size | Download |
+|---|---|---|---|
+| 4GB | TinyLlama 1.1B Q4_K_M | ~0.6GB | [HuggingFace](https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF) |
+| 6GB | **Phi-3.1-mini-4k Q4_K_M** (recommended) | ~2.3GB | [HuggingFace](https://huggingface.co/bartowski/Phi-3.1-mini-4k-instruct-GGUF) |
+| 8GB+ | Mistral 7B Q4_K_M | ~4.1GB | [HuggingFace](https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF) |
 
 Place the `.gguf` file in `models/` and push to device:
 
@@ -112,6 +137,30 @@ npm run test:coverage
 # Run specific test file
 npx jest --testPathPattern=PromptService
 ```
+
+## Project Memory
+
+The app now includes a project memory flow for retrieval-augmented chat on mobile:
+
+- Create multiple projects and choose one as the active memory context
+- Import local sources into a project library
+- Add web pages and lightweight web research notes into the same library
+- Chat automatically retrieves the most relevant saved chunks from the active project
+
+Searchable in this build:
+
+- Markdown, plain text, CSV, JSON
+- DOCX
+- XLSX
+- Web pages
+- Web research summaries
+
+Stored as metadata-only in this build:
+
+- PDF
+- Images
+
+That means PDFs and images can be tracked inside a project today, but they are not yet OCR or full-text indexed.
 
 ## Security Features
 

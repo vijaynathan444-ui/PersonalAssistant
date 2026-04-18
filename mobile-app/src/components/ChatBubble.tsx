@@ -29,6 +29,7 @@ const markdownStyles = {
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({message}) => {
   const isUser = message.role === 'user';
+  const citations = message.citations ?? [];
 
   return (
     <View style={[styles.container, isUser ? styles.userContainer : styles.assistantContainer]}>
@@ -39,6 +40,15 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({message}) => {
           <Markdown style={markdownStyles}>{message.content}</Markdown>
         )}
       </View>
+      {!isUser && citations.length > 0 && (
+        <View style={styles.citationsRow}>
+          {citations.map(citation => (
+            <View key={`${message.id}_${citation.itemId}`} style={styles.citationChip}>
+              <Text style={styles.citationText}>{citation.title}</Text>
+            </View>
+          ))}
+        </View>
+      )}
       <Text style={[styles.timestamp, isUser ? styles.timestampRight : styles.timestampLeft]}>
         {new Date(message.timestamp).toLocaleTimeString([], {
           hour: '2-digit',
@@ -83,6 +93,23 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#666',
     marginTop: 2,
+  },
+  citationsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 6,
+    maxWidth: '85%',
+  },
+  citationChip: {
+    backgroundColor: '#1f3b57',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  citationText: {
+    color: '#bfe1ff',
+    fontSize: 11,
   },
   timestampRight: {
     marginRight: 4,

@@ -1,4 +1,9 @@
-import type {ChatMessage} from '../types';
+import type {ChatMessage, KnowledgeCitation, ProjectMemory} from '../types';
+
+interface PromptContextOptions {
+  project?: ProjectMemory | null;
+  citations?: KnowledgeCitation[];
+}
 
 class PromptService {
   private systemPrompt: string;
@@ -12,9 +17,29 @@ class PromptService {
     this.systemPrompt = prompt;
   }
 
-  buildPrompt(messages: ChatMessage[], userMessage: string): string {
+  buildPrompt(
+    messages: ChatMessage[],
+    userMessage: string,
+    options: PromptContextOptions = {},
+  ): string {
     // Build chat completion format compatible with most GGUF models
     let prompt = `<|system|>\n${this.systemPrompt}\n`;
+
+    if (options.project) {
+      prompt += `Current project: ${options.project.name}\n`;
+      if (options.project.description) {
+        prompt += `Project notes: ${options.project.description}\n`;
+      }
+    }
+
+    if (options.citations && options.citations.length > 0) {
+      prompt += 'Retrieved context:\n';
+      for (const citation of options.citations) {
+        prompt += `- ${citation.title}: ${citation.excerpt}\n`;
+      }
+      prompt +=
+        'Use retrieved context when relevant. If the retrieved context is incomplete, say that clearly.\n';
+    }
 
     // Include recent context messages
     const contextMessages = messages.slice(-10); // Last 10 messages for context

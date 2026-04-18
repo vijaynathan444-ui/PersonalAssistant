@@ -22,12 +22,14 @@ const SettingsScreen: React.FC = () => {
   const [contextSize, setContextSize] = useState(String(settings.modelConfig.contextSize));
   const [threads, setThreads] = useState(String(settings.modelConfig.threads));
   const [maxTokens, setMaxTokens] = useState(String(settings.modelConfig.maxTokens));
+  const [retrievalTopK, setRetrievalTopK] = useState(String(settings.retrievalTopK));
   const [systemPrompt, setSystemPrompt] = useState(settings.systemPrompt);
 
   const handleSaveModelConfig = () => {
     const ctx = parseInt(contextSize, 10);
     const thr = parseInt(threads, 10);
     const max = parseInt(maxTokens, 10);
+    const retrieval = parseInt(retrievalTopK, 10);
 
     if (isNaN(ctx) || ctx < 128 || ctx > 8192) {
       Alert.alert('Invalid', 'Context size must be between 128 and 8192');
@@ -41,6 +43,10 @@ const SettingsScreen: React.FC = () => {
       Alert.alert('Invalid', 'Max tokens must be between 32 and 4096');
       return;
     }
+    if (isNaN(retrieval) || retrieval < 1 || retrieval > 8) {
+      Alert.alert('Invalid', 'Retrieved source count must be between 1 and 8');
+      return;
+    }
 
     updateSettings({
       modelConfig: {
@@ -49,6 +55,7 @@ const SettingsScreen: React.FC = () => {
         threads: thr,
         maxTokens: max,
       },
+      retrievalTopK: retrieval,
       systemPrompt,
     });
 
@@ -123,6 +130,15 @@ const SettingsScreen: React.FC = () => {
             keyboardType="numeric"
             placeholderTextColor="#555"
           />
+
+          <Text style={styles.label}>Retrieved Sources</Text>
+          <TextInput
+            style={styles.input}
+            value={retrievalTopK}
+            onChangeText={setRetrievalTopK}
+            keyboardType="numeric"
+            placeholderTextColor="#555"
+          />
         </View>
 
         {/* System Prompt */}
@@ -146,6 +162,16 @@ const SettingsScreen: React.FC = () => {
             <Switch
               value={settings.voiceEnabled}
               onValueChange={(val) => updateSettings({voiceEnabled: val})}
+              trackColor={{false: '#333', true: '#0a84ff'}}
+              thumbColor="#fff"
+            />
+          </View>
+
+          <View style={styles.switchRow}>
+            <Text style={styles.label}>Allow Web Access</Text>
+            <Switch
+              value={settings.webAccessEnabled}
+              onValueChange={(val) => updateSettings({webAccessEnabled: val})}
               trackColor={{false: '#333', true: '#0a84ff'}}
               thumbColor="#fff"
             />

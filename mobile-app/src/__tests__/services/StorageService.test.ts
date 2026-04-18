@@ -67,7 +67,7 @@ describe('StorageService', () => {
   describe('Settings', () => {
     it('should return default settings when none saved', () => {
       const settings = storageService.getSettings();
-      expect(settings.modelConfig.contextSize).toBe(2048);
+      expect(settings.modelConfig.contextSize).toBe(4096);
       expect(settings.voiceEnabled).toBe(true);
     });
 
@@ -76,7 +76,7 @@ describe('StorageService', () => {
       const settings = storageService.getSettings();
       expect(settings.voiceEnabled).toBe(false);
       // Other defaults should be preserved
-      expect(settings.modelConfig.contextSize).toBe(2048);
+      expect(settings.modelConfig.contextSize).toBe(4096);
     });
   });
 
@@ -88,6 +88,66 @@ describe('StorageService', () => {
     it('should persist onboarding state', () => {
       storageService.setOnboarded();
       expect(storageService.isOnboarded()).toBe(true);
+    });
+  });
+
+  describe('Project memory', () => {
+    it('should save and retrieve projects', () => {
+      const projects = [
+        {
+          id: 'project_1',
+          name: 'Docs',
+          description: 'Knowledge base',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ];
+
+      storageService.saveProjects(projects);
+      expect(storageService.getProjects()).toEqual(projects);
+    });
+
+    it('should save and retrieve active project id', () => {
+      storageService.setActiveProjectId('project_1');
+      expect(storageService.getActiveProjectId()).toBe('project_1');
+
+      storageService.setActiveProjectId(null);
+      expect(storageService.getActiveProjectId()).toBeNull();
+    });
+
+    it('should save and retrieve knowledge items and chunks', () => {
+      const items = [
+        {
+          id: 'item_1',
+          projectId: 'project_1',
+          title: 'readme.md',
+          sourceType: 'file' as const,
+          fileType: 'md' as const,
+          status: 'ready' as const,
+          summary: 'Summary',
+          preview: 'Preview',
+          contentLength: 7,
+          chunkCount: 1,
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      ];
+      const chunks = [
+        {
+          id: 'chunk_1',
+          itemId: 'item_1',
+          projectId: 'project_1',
+          text: 'Preview',
+          keywords: ['preview'],
+          tokenEstimate: 2,
+        },
+      ];
+
+      storageService.saveKnowledgeItems(items);
+      storageService.saveKnowledgeChunks(chunks);
+
+      expect(storageService.getKnowledgeItems()).toEqual(items);
+      expect(storageService.getKnowledgeChunks()).toEqual(chunks);
     });
   });
 });

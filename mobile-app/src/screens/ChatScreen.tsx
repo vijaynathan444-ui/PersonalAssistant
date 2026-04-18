@@ -26,7 +26,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Chat'>;
 const ChatScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const flatListRef = useRef<FlatList>(null);
-  const {loadPersistedState} = useAppStore();
+  const {loadPersistedState, projects, activeProjectId, knowledgeItems} = useAppStore();
 
   const {
     messages,
@@ -50,7 +50,8 @@ const ChatScreen: React.FC = () => {
   useEffect(() => {
     loadPersistedState();
     loadModel();
-  }, [loadPersistedState, loadModel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Configure header
   useEffect(() => {
@@ -75,6 +76,12 @@ const ChatScreen: React.FC = () => {
             style={styles.headerButton}
             accessibilityLabel="Clear chat">
             <Text style={styles.headerButtonText}>🗑</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Knowledge')}
+            style={styles.headerButton}
+            accessibilityLabel="Project memory">
+            <Text style={styles.headerButtonText}>📚</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigation.navigate('Settings')}
@@ -141,6 +148,10 @@ const ChatScreen: React.FC = () => {
   );
 
   const keyExtractor = useCallback((item: ChatMessage) => item.id, []);
+  const activeProject = projects.find(project => project.id === activeProjectId) ?? null;
+  const activeProjectSources = knowledgeItems.filter(
+    item => item.projectId === activeProjectId,
+  ).length;
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
@@ -149,6 +160,36 @@ const ChatScreen: React.FC = () => {
         isLoading={isModelLoading}
         contextSize={modelInfo?.contextSize ?? 0}
       />
+
+      {activeProject ? (
+        <TouchableOpacity
+          style={styles.projectBanner}
+          onPress={() => navigation.navigate('Knowledge')}
+          accessibilityLabel="Open project memory">
+          <View>
+            <Text style={styles.projectBannerLabel}>Active memory</Text>
+            <Text style={styles.projectBannerTitle}>{activeProject.name}</Text>
+            <Text style={styles.projectBannerSubtitle}>
+              {activeProjectSources} indexed sources available for retrieval
+            </Text>
+          </View>
+          <Text style={styles.projectBannerArrow}>›</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity
+          style={[styles.projectBanner, styles.projectBannerEmpty]}
+          onPress={() => navigation.navigate('Knowledge')}
+          accessibilityLabel="Create project memory">
+          <View>
+            <Text style={styles.projectBannerLabel}>Project memory</Text>
+            <Text style={styles.projectBannerTitle}>Create your first project</Text>
+            <Text style={styles.projectBannerSubtitle}>
+              Import files or web pages so chat answers can use your saved context.
+            </Text>
+          </View>
+          <Text style={styles.projectBannerArrow}>＋</Text>
+        </TouchableOpacity>
+      )}
 
       <FlatList
         ref={flatListRef}
@@ -199,6 +240,46 @@ const styles = StyleSheet.create({
   },
   messageList: {
     flex: 1,
+  },
+  projectBanner: {
+    marginHorizontal: 12,
+    marginTop: 12,
+    marginBottom: 4,
+    padding: 16,
+    borderRadius: 18,
+    backgroundColor: '#1d3a53',
+    borderWidth: 1,
+    borderColor: '#345c7f',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  projectBannerEmpty: {
+    backgroundColor: '#2c244a',
+    borderColor: '#4d4180',
+  },
+  projectBannerLabel: {
+    fontSize: 12,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: '#9fd7ff',
+    marginBottom: 4,
+  },
+  projectBannerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+  projectBannerSubtitle: {
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#c1d6ea',
+    maxWidth: 280,
+  },
+  projectBannerArrow: {
+    fontSize: 28,
+    color: '#ffffff',
   },
   messageContent: {
     paddingVertical: 8,

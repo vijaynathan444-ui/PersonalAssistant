@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Chat bubble with AI sparkle - Assistant icon -->
+    <!-- Main chat bubble -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,32 C30,28.69 32.69,26 36,26 L72,26 C75.31,26 78,28.69 78,32 L78,58 C78,61.31 75.31,64 72,64 L48,64 L38,74 L38,64 L36,64 C32.69,64 30,61.31 30,58 Z" />
+    <!-- Three dots indicating AI thinking -->
+    <path
+        android:fillColor="#16213e"
+        android:pathData="M44,45 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0" />
+    <path
+        android:fillColor="#16213e"
+        android:pathData="M54,45 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0" />
+    <path
+        android:fillColor="#16213e"
+        android:pathData="M64,45 m-3,0 a3,3 0,1 1,6 0 a3,3 0,1 1,-6 0" />
+    <!-- AI sparkle/star top-right -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M72,22 L73.5,18 L75,22 L79,23.5 L75,25 L73.5,29 L72,25 L68,23.5 Z" />
+    <!-- Small sparkle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M82,30 L83,28 L84,30 L86,31 L84,32 L83,34 L82,32 L80,31 Z" />
+</vector>

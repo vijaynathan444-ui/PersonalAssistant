@@ -1,5 +1,11 @@
 import {MMKV} from 'react-native-mmkv';
-import type {ChatMessage, AppSettings} from '../types';
+import type {
+  ChatMessage,
+  AppSettings,
+  ProjectMemory,
+  KnowledgeItem,
+  KnowledgeChunk,
+} from '../types';
 import {DEFAULT_SETTINGS} from '../types';
 
 const storage = new MMKV({
@@ -11,18 +17,29 @@ const KEYS = {
   CHAT_HISTORY: 'chat_history',
   SETTINGS: 'app_settings',
   ONBOARDED: 'onboarded',
+  PROJECTS: 'projects',
+  ACTIVE_PROJECT_ID: 'active_project_id',
+  KNOWLEDGE_ITEMS: 'knowledge_items',
+  KNOWLEDGE_CHUNKS: 'knowledge_chunks',
 } as const;
 
 class StorageService {
+  private readJson<T>(key: string, fallback: T): T {
+    const raw = storage.getString(key);
+    if (!raw) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  }
+
   // Chat History
   getChatHistory(): ChatMessage[] {
-    const raw = storage.getString(KEYS.CHAT_HISTORY);
-    if (!raw) return [];
-    try {
-      return JSON.parse(raw) as ChatMessage[];
-    } catch {
-      return [];
-    }
+    return this.readJson(KEYS.CHAT_HISTORY, []);
   }
 
   saveChatHistory(messages: ChatMessage[]): void {
@@ -45,13 +62,15 @@ class StorageService {
 
   // Settings
   getSettings(): AppSettings {
-    const raw = storage.getString(KEYS.SETTINGS);
-    if (!raw) return DEFAULT_SETTINGS;
-    try {
-      return {...DEFAULT_SETTINGS, ...JSON.parse(raw)};
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
+    const stored = this.readJson<Partial<AppSettings>>(KEYS.SETTINGS, {});
+    return {
+      ...DEFAULT_SETTINGS,
+      ...stored,
+      modelConfig: {
+        ...DEFAULT_SETTINGS.modelConfig,
+        ...stored.modelConfig,
+      },
+    };
   }
 
   saveSettings(settings: Partial<AppSettings>): void {
@@ -67,6 +86,44 @@ class StorageService {
 
   setOnboarded(): void {
     storage.set(KEYS.ONBOARDED, true);
+  }
+
+  // Projects
+  getProjects(): ProjectMemory[] {
+    return this.readJson(KEYS.PROJECTS, []);
+  }
+
+  saveProjects(projects: ProjectMemory[]): void {
+    storage.set(KEYS.PROJECTS, JSON.stringify(projects));
+  }
+
+  getActiveProjectId(): string | null {
+    return storage.getString(KEYS.ACTIVE_PROJECT_ID) ?? null;
+  }
+
+  setActiveProjectId(projectId: string | null): void {
+    if (!projectId) {
+      storage.delete(KEYS.ACTIVE_PROJECT_ID);
+      return;
+    }
+
+    storage.set(KEYS.ACTIVE_PROJECT_ID, projectId);
+  }
+
+  getKnowledgeItems(): KnowledgeItem[] {
+    return this.readJson(KEYS.KNOWLEDGE_ITEMS, []);
+  }
+
+  saveKnowledgeItems(items: KnowledgeItem[]): void {
+    storage.set(KEYS.KNOWLEDGE_ITEMS, JSON.stringify(items));
+  }
+
+  getKnowledgeChunks(): KnowledgeChunk[] {
+    return this.readJson(KEYS.KNOWLEDGE_CHUNKS, []);
+  }
+
+  saveKnowledgeChunks(chunks: KnowledgeChunk[]): void {
+    storage.set(KEYS.KNOWLEDGE_CHUNKS, JSON.stringify(chunks));
   }
 }
 
