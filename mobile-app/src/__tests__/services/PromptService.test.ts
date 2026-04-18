@@ -6,6 +6,7 @@ describe('PromptService', () => {
     promptService.setSystemPrompt(
       'You are a fast, helpful offline AI assistant.',
     );
+    promptService.setPromptTemplate('chatml');
   });
 
   describe('buildPrompt', () => {
@@ -166,6 +167,114 @@ describe('PromptService', () => {
       promptService.setSystemPrompt('Custom system prompt');
       const prompt = promptService.buildPrompt([], 'Test');
       expect(prompt).toContain('Custom system prompt');
+    });
+  });
+
+  describe('prompt templates', () => {
+    it('should build phi3 template', () => {
+      promptService.setPromptTemplate('phi3');
+      const prompt = promptService.buildPrompt([], 'Hello');
+      expect(prompt).toContain('<|system|>');
+      expect(prompt).toContain('<|end|>');
+      expect(prompt).toContain('<|user|>');
+      expect(prompt).toContain('Hello');
+    });
+
+    it('should build llama2 template', () => {
+      promptService.setPromptTemplate('llama2');
+      const prompt = promptService.buildPrompt([], 'Hello');
+      expect(prompt).toContain('<|begin_of_text|>');
+      expect(prompt).toContain('<|start_header_id|>');
+      expect(prompt).toContain('Hello');
+    });
+
+    it('should build gemma template', () => {
+      promptService.setPromptTemplate('gemma');
+      const prompt = promptService.buildPrompt([], 'Hello');
+      expect(prompt).toContain('<start_of_turn>');
+      expect(prompt).toContain('<end_of_turn>');
+    });
+
+    it('should build mistral template', () => {
+      promptService.setPromptTemplate('mistral');
+      const prompt = promptService.buildPrompt([], 'Hello');
+      expect(prompt).toContain('[INST]');
+      expect(prompt).toContain('[/INST]');
+    });
+
+    it('should build alpaca template', () => {
+      promptService.setPromptTemplate('alpaca');
+      const prompt = promptService.buildPrompt([], 'Hello');
+      expect(prompt).toContain('### Instruction:');
+      expect(prompt).toContain('### Response:');
+    });
+
+    it('should build zephyr template', () => {
+      promptService.setPromptTemplate('zephyr');
+      const prompt = promptService.buildPrompt([], 'Hello');
+      expect(prompt).toContain('<|system|>');
+      expect(prompt).toContain('</s>');
+    });
+
+    it('should default to chatml template', () => {
+      promptService.setPromptTemplate('chatml');
+      const prompt = promptService.buildPrompt([], 'Hello');
+      expect(prompt).toContain('<|system|>');
+      expect(prompt).toContain('<|user|>');
+      expect(prompt).toContain('<|assistant|>');
+    });
+  });
+
+  describe('detectHallucination', () => {
+    it('should return high score for clean response', () => {
+      const result = promptService.detectHallucination('This is a simple factual answer.');
+      expect(result.score).toBeGreaterThan(0.8);
+      expect(result.flags).toHaveLength(0);
+    });
+
+    it('should flag fabricated URLs', () => {
+      const result = promptService.detectHallucination('Check out https://example.com/fake-article for details.');
+      expect(result.flags).toContain('Contains URLs (may be fabricated)');
+      expect(result.score).toBeLessThan(1.0);
+    });
+
+    it('should flag academic-style citations', () => {
+      const result = promptService.detectHallucination('According to Smith et al. this is true.');
+      expect(result.flags.some(f => f.includes('citations'))).toBe(true);
+    });
+
+    it('should flag repetitive output', () => {
+      const repeated = 'This is a test sentence. This is a test sentence. This is a test sentence. This is a test sentence.';
+      const result = promptService.detectHallucination(repeated);
+      expect(result.flags.some(f => f.includes('Repetitive'))).toBe(true);
+    });
+
+    it('should clamp score between 0 and 1', () => {
+      const badResponse = 'According to Smith et al. definitely absolutely certainly 100% https://fake.com https://fake2.com ' +
+        'This repeats. This repeats. This repeats. This repeats.';
+      const result = promptService.detectHallucination(badResponse);
+      expect(result.score).toBeGreaterThanOrEqual(0);
+      expect(result.score).toBeLessThanOrEqual(1);
+    });
+  });
+
+  describe('postProcessResponse', () => {
+    it('should trim whitespace', () => {
+      expect(promptService.postProcessResponse('  Hello world  ')).toBe('Hello world');
+    });
+
+    it('should remove model artifacts', () => {
+      const response = 'Hello world<|end|><|eot_id|>[/INST]';
+      const cleaned = promptService.postProcessResponse(response);
+      expect(cleaned).not.toContain('<|end|>');
+      expect(cleaned).not.toContain('<|eot_id|>');
+      expect(cleaned).not.toContain('[/INST]');
+    });
+
+    it('should remove duplicate paragraphs', () => {
+      const response = 'First paragraph.\n\nSecond paragraph.\n\nSecond paragraph.';
+      const cleaned = promptService.postProcessResponse(response);
+      expect(cleaned.split('Second paragraph').length - 1).toBe(1);
     });
   });
 });

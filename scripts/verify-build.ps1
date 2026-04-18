@@ -175,8 +175,7 @@ if ($ggufFiles.Count -gt 0) {
     Pass "GGUF model in models/" $names
     $ggufPath = $ggufFiles[0].FullName
 } else {
-    $url = "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF"
-    Fail "No GGUF model in models/" "Download from $url and save to $Project\models\model.gguf"
+    Fail "No GGUF model in models/" "Place a .gguf model file in $Project\models\ to bundle it with the APK"
 }
 
 if ($adbExe) {

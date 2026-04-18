@@ -159,6 +159,7 @@ const ChatScreen: React.FC = () => {
         isLoaded={modelInfo?.loaded ?? false}
         isLoading={isModelLoading}
         contextSize={modelInfo?.contextSize ?? 0}
+        modelId={modelInfo?.modelId}
       />
 
       {activeProject ? (

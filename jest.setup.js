@@ -37,12 +37,14 @@ jest.mock('react-native-fs', () => ({
     copyFile: jest.fn(() => Promise.resolve()),
     exists: jest.fn(() => Promise.resolve(false)),
     mkdir: jest.fn(() => Promise.resolve()),
+    readDir: jest.fn(() => Promise.resolve([])),
     DocumentDirectoryPath: '/data/data/com.localaiassistant/files',
   },
   readFile: jest.fn(),
   copyFile: jest.fn(() => Promise.resolve()),
   exists: jest.fn(() => Promise.resolve(false)),
   mkdir: jest.fn(() => Promise.resolve()),
+  readDir: jest.fn(() => Promise.resolve([])),
   DocumentDirectoryPath: '/data/data/com.localaiassistant/files',
 }));
 

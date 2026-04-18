@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -16,10 +16,12 @@ import {useAppStore} from '../store/useAppStore';
 import {useLLM} from '../hooks/useLLM';
 import llmService from '../services/LLMService';
 import securityService from '../services/SecurityService';
+import ModelSelector from '../components/ModelSelector';
+import {MODEL_CATALOG, ModelCatalogEntry} from '../types';
 
 const SettingsScreen: React.FC = () => {
   const {settings, updateSettings} = useAppStore();
-  const {modelInfo, loadModel, unloadModel, isModelLoading} = useLLM();
+  const {modelInfo, loadModel, switchModel, unloadModel, isModelLoading, getMemoryInfo} = useLLM();
 
   const [modelPath, setModelPath] = useState(settings.modelConfig.modelPath);
   const [contextSize, setContextSize] = useState(String(settings.modelConfig.contextSize));
@@ -28,6 +30,25 @@ const SettingsScreen: React.FC = () => {
   const [retrievalTopK, setRetrievalTopK] = useState(String(settings.retrievalTopK));
   const [systemPrompt, setSystemPrompt] = useState(settings.systemPrompt);
   const [isCopying, setIsCopying] = useState(false);
+
+  const handleSelectCatalogModel = useCallback(async (entry: ModelCatalogEntry) => {
+    // Update settings with catalog model defaults
+    setContextSize(String(entry.contextWindow));
+    setThreads(String(entry.defaultThreads));
+    setMaxTokens(String(entry.defaultMaxTokens));
+    updateSettings({
+      modelConfig: {
+        ...settings.modelConfig,
+        selectedModelId: entry.id,
+        contextSize: entry.contextWindow,
+        threads: entry.defaultThreads,
+        maxTokens: entry.defaultMaxTokens,
+      },
+    });
+
+    // Switch model (unloads current, loads new)
+    await switchModel(entry);
+  }, [settings, switchModel, updateSettings]);
 
   const handlePickModel = async () => {
     try {
@@ -97,6 +118,7 @@ const SettingsScreen: React.FC = () => {
         contextSize: ctx,
         threads: thr,
         maxTokens: max,
+        selectedModelId: settings.modelConfig.selectedModelId,
       },
       retrievalTopK: retrieval,
       systemPrompt,
@@ -129,8 +151,19 @@ const SettingsScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        {/* Model Selector Dropdown */}
+        <Text style={styles.sectionTitle}>AI Model</Text>
+        <View style={styles.card}>
+          <ModelSelector
+            selectedModelId={settings.modelConfig.selectedModelId}
+            onSelectModel={handleSelectCatalogModel}
+            isLoading={isModelLoading}
+            loadedModelId={modelInfo?.modelId}
+          />
+        </View>
+
         {/* Model Configuration */}
-        <Text style={styles.sectionTitle}>Model Configuration</Text>
+        <Text style={styles.sectionTitle}>Advanced Configuration</Text>
         <View style={styles.card}>
           <Text style={styles.label}>Model Path</Text>
           <TextInput
@@ -156,7 +189,7 @@ const SettingsScreen: React.FC = () => {
             )}
           </TouchableOpacity>
           <Text style={styles.hintText}>
-            Download a GGUF model and place it anywhere on your device, then use the button above to import it.
+            Place .gguf model files on your device storage, then use the button above to import them. All models run 100% locally on-device.
           </Text>
 
           <View style={styles.row}>

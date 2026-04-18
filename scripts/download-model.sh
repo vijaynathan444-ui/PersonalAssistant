@@ -1,28 +1,26 @@
 #!/bin/bash
-# Download the recommended GGUF model for LocalAI Assistant
-# Model: Phi-3.1-mini-4k-instruct Q4_K_M (~2.3GB)
-# License: MIT (open-source)
+# Verify bundled GGUF model for LocalAI Assistant
+# The default model (TinyLlama 1.1B Q4_K_M) is bundled with the APK.
+# Additional models can be imported via the in-app file picker.
 
 set -e
 
 MODEL_DIR="$(dirname "$0")/../models"
-MODEL_FILE="$MODEL_DIR/model.gguf"
-MODEL_URL="https://huggingface.co/bartowski/Phi-3.1-mini-4k-instruct-GGUF/resolve/main/Phi-3.1-mini-4k-instruct-Q4_K_M.gguf"
 
-mkdir -p "$MODEL_DIR"
+echo "Checking local models directory..."
 
-if [ -f "$MODEL_FILE" ]; then
-  echo "Model already exists at $MODEL_FILE"
-  echo "Delete it first if you want to re-download."
-  exit 0
+GGUF_COUNT=$(find "$MODEL_DIR" -name "*.gguf" 2>/dev/null | wc -l)
+
+if [ "$GGUF_COUNT" -gt 0 ]; then
+  echo "Found $GGUF_COUNT model(s) in $MODEL_DIR:"
+  ls -lh "$MODEL_DIR"/*.gguf
+  echo ""
+  echo "These models will be bundled into the APK at build time."
+else
+  echo "No .gguf models found in $MODEL_DIR"
+  echo "Place GGUF model files in $MODEL_DIR to bundle them with the APK."
 fi
 
-echo "Downloading Phi-3.1-mini-4k-instruct Q4_K_M (~2.3GB)..."
-echo "Source: $MODEL_URL"
-curl -L -o "$MODEL_FILE" "$MODEL_URL"
-
 echo ""
-echo "Download complete: $MODEL_FILE"
-echo ""
-echo "Push to device with:"
-echo "  adb push $MODEL_FILE /data/local/tmp/models/model.gguf"
+echo "All models run 100% locally on-device via llama.cpp."
+echo "No internet connection required."

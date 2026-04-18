@@ -83,6 +83,18 @@ android {
         pickFirst '**/libllama.so'
     }
 
+    // Bundle GGUF models from project models/ directory as Android assets
+    sourceSets {
+        main {
+            assets.srcDirs += ['../../models']
+        }
+    }
+
+    // Disable compression for large model files to allow direct memory mapping
+    aaptOptions {
+        noCompress 'gguf'
+    }
+
 }
 
 def jscFlavor = 'org.webkit:android-jsc:+'

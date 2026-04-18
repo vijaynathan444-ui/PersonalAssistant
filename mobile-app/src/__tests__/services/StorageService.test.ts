@@ -67,7 +67,7 @@ describe('StorageService', () => {
   describe('Settings', () => {
     it('should return default settings when none saved', () => {
       const settings = storageService.getSettings();
-      expect(settings.modelConfig.contextSize).toBe(4096);
+      expect(settings.modelConfig.contextSize).toBe(2048);
       expect(settings.voiceEnabled).toBe(true);
     });
 
@@ -76,7 +76,7 @@ describe('StorageService', () => {
       const settings = storageService.getSettings();
       expect(settings.voiceEnabled).toBe(false);
       // Other defaults should be preserved
-      expect(settings.modelConfig.contextSize).toBe(4096);
+      expect(settings.modelConfig.contextSize).toBe(2048);
     });
   });
 

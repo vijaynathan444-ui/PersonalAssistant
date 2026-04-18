@@ -71,4 +71,27 @@ describe('LLMService', () => {
       expect(info).toEqual({loaded: true, contextSize: 4096});
     });
   });
+
+  describe('model ID tracking', () => {
+    it('should track current model ID', () => {
+      llmService.setCurrentModelId('phi3.1-mini-4k-q4');
+      expect(llmService.getCurrentModelId()).toBe('phi3.1-mini-4k-q4');
+    });
+
+    it('should clear model ID on unload', async () => {
+      llmService.setCurrentModelId('test-model');
+      await llmService.unloadModel();
+      expect(llmService.getCurrentModelId()).toBeNull();
+    });
+  });
+
+  describe('getMemoryInfo', () => {
+    it('should return memory info object', () => {
+      const info = llmService.getMemoryInfo();
+      expect(info).toHaveProperty('estimatedUsageMB');
+      expect(info).toHaveProperty('isLowMemory');
+      expect(info).toHaveProperty('recommendedMaxContext');
+      expect(info).toHaveProperty('recommendedThreads');
+    });
+  });
 });

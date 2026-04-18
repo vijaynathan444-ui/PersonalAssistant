@@ -1,26 +1,26 @@
 @echo off
-REM Download the recommended GGUF model for LocalAI Assistant
-REM Model: Phi-3.1-mini-4k-instruct Q4_K_M (~2.3GB)
-REM License: MIT (open-source)
+REM Verify bundled GGUF model for LocalAI Assistant
+REM The default model (TinyLlama 1.1B Q4_K_M) is bundled with the APK.
+REM Additional models can be imported via the in-app file picker.
 
 set MODEL_DIR=%~dp0..\models
-set MODEL_FILE=%MODEL_DIR%\model.gguf
-set MODEL_URL=https://huggingface.co/bartowski/Phi-3.1-mini-4k-instruct-GGUF/resolve/main/Phi-3.1-mini-4k-instruct-Q4_K_M.gguf
 
-if not exist "%MODEL_DIR%" mkdir "%MODEL_DIR%"
+echo Checking local models directory...
 
-if exist "%MODEL_FILE%" (
-  echo Model already exists at %MODEL_FILE%
-  echo Delete it first if you want to re-download.
-  exit /b 0
+set FOUND=0
+for %%f in ("%MODEL_DIR%\*.gguf") do (
+  echo Found: %%~nxf (%%~zf bytes)
+  set /a FOUND+=1
 )
 
-echo Downloading Phi-3.1-mini-4k-instruct Q4_K_M (~2.3GB)...
-echo Source: %MODEL_URL%
-curl -L -o "%MODEL_FILE%" "%MODEL_URL%"
+if %FOUND% GTR 0 (
+  echo.
+  echo %FOUND% model(s) will be bundled into the APK at build time.
+) else (
+  echo No .gguf models found in %MODEL_DIR%
+  echo Place GGUF model files in %MODEL_DIR% to bundle them with the APK.
+)
 
 echo.
-echo Download complete: %MODEL_FILE%
-echo.
-echo Push to device with:
-echo   adb push %MODEL_FILE% /data/local/tmp/models/model.gguf
+echo All models run 100%% locally on-device via llama.cpp.
+echo No internet connection required.

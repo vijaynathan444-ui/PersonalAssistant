@@ -1,15 +1,18 @@
 import React from 'react';
 import {View, Text, StyleSheet, ActivityIndicator, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {MODEL_CATALOG} from '../types';
 
 interface ModelStatusBarProps {
   isLoaded: boolean;
   isLoading: boolean;
   contextSize: number;
+  modelId?: string | null;
 }
 
-const ModelStatusBar: React.FC<ModelStatusBarProps> = ({isLoaded, isLoading, contextSize}) => {
+const ModelStatusBar: React.FC<ModelStatusBarProps> = ({isLoaded, isLoading, contextSize, modelId}) => {
   const navigation = useNavigation<any>();
+  const catalogEntry = modelId ? MODEL_CATALOG.find(m => m.id === modelId) : null;
 
   if (!isLoaded && !isLoading) {
     return (
@@ -36,7 +39,7 @@ const ModelStatusBar: React.FC<ModelStatusBarProps> = ({isLoaded, isLoading, con
         </View>
       ) : (
         <Text style={styles.statusText}>
-          Model ready • {contextSize} ctx
+          {catalogEntry ? `${catalogEntry.name} • ` : ''}Model ready • {contextSize} ctx
         </Text>
       )}
     </View>

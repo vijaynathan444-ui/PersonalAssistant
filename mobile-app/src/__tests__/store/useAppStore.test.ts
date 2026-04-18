@@ -7,6 +7,7 @@ const mockDefaultSettings = {
     contextSize: 2048,
     threads: 4,
     maxTokens: 512,
+    selectedModelId: null as string | null,
   },
   voiceEnabled: true,
   systemPrompt:
